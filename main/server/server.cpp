@@ -12,7 +12,7 @@
 #include "tempture.hpp"
 
 #include "pwm.hpp"
-#include "web.hpp"
+#include "html/light.hpp"
 
 static uint8_t autoRestartTimes = 0;
 static uint8_t maxRestartTimes = 0;
