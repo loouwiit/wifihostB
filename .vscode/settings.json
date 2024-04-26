@@ -1,0 +1,22 @@
+{
+    "idf.port": "/dev/ttyACM0",
+    "idf.adapterTargetName": "esp32s3",
+    "idf.openOcdConfigs": [
+        "interface/ftdi/esp32_devkitj_v1.cfg",
+        "target/esp32s3.cfg"
+    ],
+    "idf.flashType": "UART",
+    "files.associations": {
+        "sleep.hpp": "c",
+        "console.h": "c",
+        "sleep_cpu.h": "c",
+        "sleep_clock.h": "c",
+        "freertos.h": "c",
+        "projdefs.h": "c",
+        "task.h": "c",
+        "esp_task.h": "c",
+        "driver.h": "c",
+        "gpio.h": "c"
+    },
+    "cmake.configureOnOpen": false
+}
