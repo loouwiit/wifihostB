@@ -5,7 +5,8 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "/usr/include/**",
-                "~/File/Develop/ESP/esp-idf/components/**"
+                "~/File/Develop/ESP/esp-idf/components/**",
+                "~/File/Develop/ESP/esp-idf/components/lwip/lwip/src/include/"
             ],
             "defines": [],
             "intelliSenseMode": "linux-gcc-x64",

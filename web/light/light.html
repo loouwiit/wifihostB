@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
+	<link rel="stylesheet" type="text/css" href="/index.css" />
+	<title>光亮设置</title>
+</head>
+
+<body>
+	<input type="range" id="lightLevelRange" min="0" max="1024" value="0" />
+	<br />
+	<label for="lightLevel" id="lightLevelLabel">光亮等级:00</label>
+	<br />
+
+	<button id="lightLevelLess">暗</button>
+	<button id="lightLevelMore">亮</button>
+	<button id="serverOff">关闭网络控制</button>
+</body>
+
+<script src="light.js" defer></script>
+
+</html>

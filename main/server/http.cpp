@@ -253,6 +253,20 @@ HttpStringPair& HttpStringPair::operator=(const HttpStringPair& stringPair)
 	return *this;
 }
 
+HttpStringPair& HttpStringPair::operator=(HttpStringPair&& stringPair)
+{
+	char* temp;
+	temp = stringPair.name;
+	stringPair.name = name;
+	name = temp;
+
+	temp = stringPair.value;
+	stringPair.value = value;
+	value = temp;
+
+	return *this;
+}
+
 void HttpStringPair::swap(HttpStringPair& swap)
 {
 	char* temp;
@@ -398,6 +412,7 @@ void HttpPairs<T>::clear()
 	{
 		stringPairs[i].clear();
 	}
+	stringPairsPointer = 0;
 }
 
 template <class T>
@@ -409,6 +424,18 @@ void HttpPairs<T>::add(const T& pair)
 		setNumber(stringPairsPointer + HttpStringPairsAddSpeed);
 	}
 	stringPairs[stringPairsPointer] = pair;
+	stringPairsPointer++;
+}
+
+template <class T>
+void HttpPairs<T>::add(T&& pair)
+{
+	// 检查有无剩余
+	if (stringPairsPointer >= stringPairsLenght)
+	{
+		setNumber(stringPairsPointer + HttpStringPairsAddSpeed);
+	}
+	stringPairs[stringPairsPointer].swap(pair);
 	stringPairsPointer++;
 }
 
@@ -670,6 +697,7 @@ HttpStringPairSize_t HttpHeads::receive(ISocketStream& socketStream)
 	bool flag = true;
 	size_t pairCount = 0;
 
+	clear();
 	socketStream.ignoreVoid();
 	do
 	{
@@ -793,14 +821,31 @@ void HttpBase::setBodyLenght(size_t lenght)
 	bodyLenght = lenght;
 }
 
-void*& HttpBase::getBody()
+bool HttpBase::isBodyRecieved()
+{
+	return bodyIsRecieved;
+}
+
+bool HttpBase::isBodyFile()
+{
+	return bodyIsFile;
+}
+
+void* HttpBase::getBody()
 {
 	return body;
 }
 
-void HttpBase::setBody(void*& body)
+void HttpBase::setBody(void* body)
 {
+	bodyIsFile = false;
 	this->body = body;
+}
+
+void HttpBase::setBody(HttpFileBodyType& file)
+{
+	bodyIsFile = true;
+	body = &file;
 }
 
 // request
@@ -858,17 +903,9 @@ void HttpRequest::receive(ISocketStream& socketStream)
 
 	// body
 	{
-		size_t bodyLenght = getBodyLenght() + 1;
-		delete[](char*)body;
-		if (bodyLenght <= HttpMaxAutoReciveBufferLenght)
-		{
-			body = new char[bodyLenght];
-			socketStream.read((char*)body, bodyLenght);
-		}
-		else
-		{
-			body = nullptr;
-		}
+		bodyIsFile = false;
+		bodyIsRecieved = false;
+		body = nullptr;
 	}
 }
 
@@ -890,7 +927,23 @@ void HttpRequest::send(OSocketStream& socketStream)
 	socketStream.put('\n');
 
 	// body
-	socketStream.write((char*)this->body, getBodyLenght());
+	if (!bodyIsFile)
+	{
+		socketStream.write((char*)this->body, getBodyLenght());
+	}
+	else
+	{
+		char buffer[HttpBodySendingBufferLenght];
+		HttpFileBodyType& file = *(HttpFileBodyType*)body;
+		size_t i = bodyLenght;
+		while (i > 0)
+		{
+			//printf("[debug] HttpRequest: sending file, byte left = %u\n", i);
+			i -= file.read(buffer, HttpBodySendingBufferLenght);
+			socketStream.write(buffer, HttpBodySendingBufferLenght);
+			vTaskDelay(1);
+		}
+	}
 }
 
 void HttpRequest::setMethod(HttpMethod method)
@@ -968,17 +1021,9 @@ void HttpRespond::receive(ISocketStream& socketStream)
 
 	// body
 	{
-		size_t bodyLenght = getBodyLenght() + 1;
-		delete[](char*)body;
-		if (bodyLenght <= HttpMaxAutoReciveBufferLenght)
-		{
-			body = new char[bodyLenght];
-			socketStream.read((char*)body, bodyLenght);
-		}
-		else
-		{
-			body = nullptr;
-		}
+		bodyIsFile = false;
+		bodyIsRecieved = false;
+		body = nullptr;
 	}
 }
 
@@ -1017,8 +1062,22 @@ void HttpRespond::send(OSocketStream& socketStream)
 	}
 
 	//body
+	if (!bodyIsFile)
 	{
 		socketStream.write((char*)this->body, getBodyLenght());
+	}
+	else
+	{
+		char buffer[HttpBodySendingBufferLenght];
+		HttpFileBodyType& file = *(HttpFileBodyType*)body;
+		size_t i = bodyLenght;
+		while (i > 0)
+		{
+			//printf("[debug] HttpRespond: sending file, byte left = %u\n", i);
+			i -= file.read(buffer, HttpBodySendingBufferLenght);
+			socketStream.write(buffer, HttpBodySendingBufferLenght);
+			vTaskDelay(1);
+		}
 	}
 }
 
@@ -1079,6 +1138,10 @@ const char* getMethodNameFromMethod(const HttpMethod method)
 		return HttpMethodName::Get;
 	case HttpMethod::Post:
 		return HttpMethodName::Post;
+	case HttpMethod::Put:
+		return HttpMethodName::Put;
+	case HttpMethod::Delete:
+		return HttpMethodName::Delete;
 	}
 }
 
@@ -1089,7 +1152,60 @@ HttpMethod getMethodFromName(const char* name)
 	case 'G':
 	case 'g':
 		return HttpMethod::Get;
+	case 'P':
+	case 'p':
 	default:
-		return HttpMethod::Post;
+		switch (name[1])
+		{
+		case 'O':
+		case 'o':
+		default:
+			return HttpMethod::Post;
+		case 'U':
+		case 'u':
+			return HttpMethod::Put;
+		}
+	case 'D':
+	case 'd':
+		return HttpMethod::Delete;
 	}
+}
+
+HttpContentType getContentTypeFromPath(const char* path, size_t length)
+{
+	if ((length > 4 && path[length - 4] == '.' && path[length - 3] == 'h' && path[length - 2] == 't' && path[length - 1] == 'm') ||
+		(length > 5 && path[length - 5] == '.' && path[length - 4] == 'h' && path[length - 3] == 't' && path[length - 2] == 'm' && path[length - 1] == 'l'))
+		return HttpContentType::Html;
+	if ((length > 4 && path[length - 4] == '.' && path[length - 3] == 'c' && path[length - 2] == 's' && path[length - 1] == 's'))
+		return HttpContentType::Css;
+	if ((length > 3 && path[length - 3] == '.' && path[length - 2] == 'j' && path[length - 1] == 's'))
+		return HttpContentType::Javascript;
+	return HttpContentType::Other;
+}
+
+HttpContentType getContentTypeFromPath(const char* path)
+{
+	size_t length = strlen(path);
+	return getContentTypeFromPath(path, length);
+}
+
+const char* getContentTypeNameFromContentType(HttpContentType type)
+{
+	switch (type)
+	{
+	case HttpContentType::Html:
+		return HttpContentTypeName::Html;
+		break;
+	case HttpContentType::Javascript:
+		return HttpContentTypeName::Javascript;
+		break;
+	case HttpContentType::Css:
+		return HttpContentTypeName::Css;
+		break;
+	case HttpContentType::Other:
+	default:
+		return HttpContentTypeName::Other;
+		break;
+	}
+	return HttpContentTypeName::Other;
 }

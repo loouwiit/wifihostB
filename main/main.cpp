@@ -6,10 +6,11 @@
 #include <freertos/task.h>
 #include <freertos/queue.h>
 #include <freertos/portmacro.h>
-#include<esp_event.h>
+#include <esp_event.h>
 #include "tempture.hpp"
 #include "pwm.hpp"
 #include "wifi.hpp"
+#include "fat.hpp"
 #include "server/head/server.hpp"
 
 extern bool serverRunning;
@@ -27,10 +28,19 @@ void app_main()
 	initTemperature();
 	startTemperature();
 	startPWM((gpio_num_t)5);
+	mountFlash();
 
 	ESP_ERROR_CHECK(esp_event_loop_create_default());
 	wifiInit();
 	wifiInitSta();
+
+	{
+		stopTemperature();
+		serverRunning = true;
+		wifiStart();
+		wifiConnect();
+		startServer();
+	}
 
 	printf("started\n");
 
@@ -64,7 +74,7 @@ void setIo0()
 	gpio_config(&io_conf);
 
 	gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));
-	xTaskCreate(ioPressed, "ioPressed", 4096, NULL, 10, NULL);
+	xTaskCreate(ioPressed, "ioPressed", 1024, NULL, 10, NULL);
 
 	gpio_install_isr_service(0);
 	//hook isr handler for specific gpio pin

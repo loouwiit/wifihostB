@@ -30,6 +30,7 @@ public:
 	char get();
 	char peek();
 
+	size_t readByte(char* buffer, size_t bufferSize);
 	size_t read(char *buffer, size_t bufferSize);
 	size_t getline(char *buffer, size_t bufferSize, char end = '\n');
 

@@ -2,8 +2,7 @@
     "idf.port": "/dev/ttyACM0",
     "idf.adapterTargetName": "esp32s3",
     "idf.openOcdConfigs": [
-        "interface/ftdi/esp32_devkitj_v1.cfg",
-        "target/esp32s3.cfg"
+        "board/esp32s3-builtin.cfg"
     ],
     "idf.flashType": "UART",
     "files.associations": {
@@ -16,7 +15,32 @@
         "task.h": "c",
         "esp_task.h": "c",
         "driver.h": "c",
-        "gpio.h": "c"
+        "gpio.h": "c",
+        "array": "cpp",
+        "compare": "cpp",
+        "functional": "cpp",
+        "ratio": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "utility": "cpp",
+        "chrono": "cpp",
+        "memory": "cpp",
+        "future": "cpp",
+        "istream": "cpp",
+        "*.tcc": "cpp",
+        "atomic": "cpp",
+        "deque": "cpp",
+        "list": "cpp",
+        "string": "cpp",
+        "unordered_map": "cpp",
+        "vector": "cpp",
+        "fstream": "cpp",
+        "limits": "cpp",
+        "sstream": "cpp",
+        "system_error": "cpp",
+        "typeinfo": "cpp",
+        "regex": "cpp"
     },
-    "cmake.configureOnOpen": false
+    "cmake.configureOnOpen": false,
+    "C_Cpp.errorSquiggles": "disabled"
 }

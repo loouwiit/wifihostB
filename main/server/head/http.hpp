@@ -1,8 +1,10 @@
 #pragma once
 #include "socketStream.hpp"
 #include "nonCopyAble.hpp"
+#include "fat.hpp"
 
 using HttpStringPairSize_t = uint8_t;
+using HttpFileBodyType = IFile;
 
 constexpr const char HttpVersion[] = "HTTP/1.1";
 constexpr const size_t HttpVersionSize = sizeof(HttpVersion) - 1;
@@ -12,13 +14,16 @@ constexpr const size_t HttpReasonBufferLenght = 64;
 constexpr const size_t HttpStringPairsAddSpeed = 2;
 
 constexpr const size_t HttpHeadsBufferLenght = 512;
-constexpr const size_t HttpMaxAutoReciveBufferLenght = 4 * 1024;
+
+constexpr const size_t HttpBodySendingBufferLenght = 64;
 
 enum class HttpMethod
 {
 	Null,
 	Get,
-	Post
+	Post,
+	Put,
+	Delete,
 };
 
 namespace HttpMethodName
@@ -26,6 +31,8 @@ namespace HttpMethodName
 	constexpr const char Null[] = "";
 	constexpr const char Get[] = "GET";
 	constexpr const char Post[] = "POST";
+	constexpr const char Put[] = "PUT";
+	constexpr const char Delete[] = "DELETE";
 }
 
 enum class HttpStatus
@@ -62,6 +69,24 @@ namespace HttpHeadName
 	constexpr const char Path[] = "Path";
 }
 
+enum class HttpContentType
+{
+	Html,
+	Javascript,
+	Css,
+
+	Other
+};
+
+namespace HttpContentTypeName
+{
+	constexpr char Html[] = "text/html; charset=utf-8";
+	constexpr char Javascript[] = "application/x-javascript; charset=utf-8";
+	constexpr char Css[] = "text/css; charset=utf-8";
+
+	constexpr char Other[] = "text/html; charset=utf-8";
+}
+
 //functions
 
 size_t stoa(size_t size, char* buffer, size_t bufferSize);
@@ -80,6 +105,7 @@ public:
 	~HttpStringPair();
 
 	HttpStringPair& operator=(const HttpStringPair& stringPair);
+	HttpStringPair& operator=(HttpStringPair&& stringPair);
 
 	void swap(HttpStringPair&);
 	void copy(const HttpStringPair&);
@@ -111,6 +137,7 @@ public:
 	void clear();
 
 	void add(const T& pair);
+	void add(T&& pair);
 
 	bool set(HttpStringPairSize_t index, const T& stringPair);
 
@@ -186,9 +213,16 @@ public:
 	size_t getBodyLenght();
 	void setBodyLenght(size_t lenght);
 
+	bool isBodyRecieved();
+	bool isBodyFile();
+	void* getBody();
+	void setBody(HttpFileBodyType& file);
+	void setBody(void* body);
+
+protected:
+	bool bodyIsFile = false;
+	bool bodyIsRecieved = false;
 	void* body = nullptr;
-	void*& getBody();
-	void setBody(void*& body);
 };
 
 // request
@@ -238,3 +272,6 @@ private:
 const char* getReasonFromStatus(const HttpStatus status);
 const char* getMethodNameFromMethod(const HttpMethod method);
 HttpMethod getMethodFromName(const char* name);
+HttpContentType getContentTypeFromPath(const char* path, size_t length);
+HttpContentType getContentTypeFromPath(const char* path);
+const char* getContentTypeNameFromContentType(HttpContentType type);

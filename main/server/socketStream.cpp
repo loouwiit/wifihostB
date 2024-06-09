@@ -65,7 +65,7 @@ char ISocketStream::peek()
 	return IBuffer[IPointer];
 }
 
-size_t ISocketStream::read(char* buffer, size_t bufferSize)
+size_t ISocketStream::readByte(char* buffer, size_t bufferSize)
 {
 	// 无效指针
 	if (buffer == nullptr || bufferSize == 0)
@@ -79,7 +79,7 @@ size_t ISocketStream::read(char* buffer, size_t bufferSize)
 	bool reading = true;
 	size_t readCount = 0;
 
-	size_t bufferLeave = bufferSize - 1; // 留下一个给\0
+	size_t bufferLeave = bufferSize;
 	size_t IBufferRead = 0;
 	size_t readNumber = 0;
 
@@ -103,8 +103,13 @@ size_t ISocketStream::read(char* buffer, size_t bufferSize)
 		reading = checkIBuffer(); // 判断是否读取完毕
 	} while (reading);
 
-	buffer[readCount] = '\0'; // 规范字符串
+	return readCount;
+}
 
+size_t ISocketStream::read(char* buffer, size_t bufferSize)
+{
+	size_t readCount = readByte(buffer, bufferSize - 1);
+	buffer[readCount] = '\0'; // 规范字符串
 	return readCount;
 }
 
