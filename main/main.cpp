@@ -25,8 +25,6 @@ void ioPressed(void* arg);
 void app_main()
 {
 	setIo0();
-	initTemperature();
-	startTemperature();
 	startPWM((gpio_num_t)5);
 	mountFlash();
 
@@ -35,12 +33,14 @@ void app_main()
 	wifiInitSta();
 
 	{
-		stopTemperature();
-		serverRunning = true;
+				serverRunning = true;
 		wifiStart();
 		wifiConnect();
 		startServer();
 	}
+
+	initTemperature();
+	startTemperature();
 
 	printf("started\n");
 
@@ -104,6 +104,7 @@ void ioPressed(void* arg)
 				wifiStart();
 				wifiConnect();
 				startServer();
+startTemperature();
 			}
 		}
 	}

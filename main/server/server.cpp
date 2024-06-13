@@ -278,10 +278,12 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 		sendOk(socketStream);
 		vTaskDelay(100 / portTICK_PERIOD_MS);
 
+		stopTemperature();
 		wifiDisconnect();
 		wifiStop();
-		startTemperature();
 		serverRunning = false;
+		vTaskDelay(1000 / portTICK_PERIOD_MS);
+		startTemperature();
 
 		return;
 	}
