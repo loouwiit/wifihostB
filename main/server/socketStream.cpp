@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <lwip/sockets.h>
 #include "socketStream.hpp"
 
 // SocketStreamBase
@@ -16,6 +17,13 @@ SocketStreamBase::operator Socket()
 bool SocketStreamBase::isGood()
 {
 	return socketGood;
+}
+
+void SocketStreamBase::close()
+{
+	shutdown(socket, 0);
+	::close(socket);
+	socketGood = false;
 }
 
 // ISocketStream

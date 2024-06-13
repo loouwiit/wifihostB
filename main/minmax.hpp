@@ -1,7 +1,15 @@
-#ifndef min
-#define min(a, b) (a <= b ? a : b)
-#endif
+#pragma once
 
-#ifndef max
-#define max(a, b) (a >= b ? a : b)
-#endif
+template<class T>
+static constexpr T min(T a, T b)
+{
+	if (a <= b) return a;
+	else return b;
+}
+
+template<class T>
+static constexpr T max(T a, T b)
+{
+	if (a >= b) return a;
+	else return b;
+}

@@ -33,7 +33,7 @@ void app_main()
 	wifiInitSta();
 
 	{
-				serverRunning = true;
+		serverRunning = true;
 		wifiStart();
 		wifiConnect();
 		startServer();
@@ -104,7 +104,7 @@ void ioPressed(void* arg)
 				wifiStart();
 				wifiConnect();
 				startServer();
-startTemperature();
+				startTemperature();
 			}
 		}
 	}

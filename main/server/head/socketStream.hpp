@@ -1,3 +1,4 @@
+#pragma once
 #include <lwip/sockets.h>
 #include "minmax.hpp"
 #include "nonCopyAble.hpp"
@@ -13,6 +14,7 @@ public:
 	Socket getSocket();
 	operator Socket();
 	bool isGood();
+	void close();
 
 protected:
 	Socket socket = 0;
@@ -29,16 +31,17 @@ public:
 
 	char get();
 	char peek();
+	bool check() { return checkIBuffer(); }
 
 	size_t readByte(char* buffer, size_t bufferSize);
-	size_t read(char *buffer, size_t bufferSize);
-	size_t getline(char *buffer, size_t bufferSize, char end = '\n');
+	size_t read(char* buffer, size_t bufferSize);
+	size_t getline(char* buffer, size_t bufferSize, char end = '\n');
 
 	size_t ignore(char ch, size_t maxNumber = 1);
 	size_t ignoreVoid(size_t maxNumber = (size_t)-1);
 
 protected:
-	char *IBuffer = nullptr;
+	char* IBuffer = nullptr;
 	SocketBufferSize_t IBufferLenght = 0;
 	SocketBufferSize_t IPointer = 0;
 
@@ -57,10 +60,10 @@ public:
 
 	bool put(const char ch);
 
-	size_t write(const char *buffer, size_t bufferSize);
+	size_t write(const char* buffer, size_t bufferSize);
 
 protected:
-	char *OBuffer = nullptr;
+	char* OBuffer = nullptr;
 	SocketBufferSize_t OPointer = 0;
 
 	bool checkOBuffer();

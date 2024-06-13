@@ -8,6 +8,7 @@
 #include "tempture.hpp"
 #include "server.hpp"
 #include "http.hpp"
+#include "socketStreamWindow.hpp"
 #include "wifi.hpp"
 #include "tempture.hpp"
 #include "mDns.hpp"
@@ -21,12 +22,17 @@ static uint8_t maxRestartTimes = 0;
 
 constexpr char MDnsName[] = "esp32s3";
 constexpr char formatingPassword[] = "I know exactly what I'm doing";
-constexpr size_t PutMaxSize = 1024 * 1024;
+constexpr size_t PutMaxSize = 1024 * 1024; //1M
 constexpr size_t PutBufferSize = 64;
 
+constexpr size_t socketStreamWindowNumber = 20;
+constexpr size_t coworkerNumber = 4;
+
 bool serverRunning = false;
+SocketStreamWindow socketStreamWindows[socketStreamWindowNumber];
 
 void server(void*);
+void serverCoworker(void*);
 void recieve(IOSocketStream& socketStream);
 void sendOk(OSocketStream& socketStream);
 void httpGet(IOSocketStream& socketStream, HttpRequest& request);
@@ -44,6 +50,10 @@ void startServer(uint8_t maxAutoRestartTimes)
 	autoRestartTimes = 0;
 	maxRestartTimes = maxAutoRestartTimes;
 	xTaskCreate(server, "serverTask", 4096, nullptr, 10, NULL);
+	for (size_t i = 0;i < coworkerNumber;i++)
+	{
+		xTaskCreate(serverCoworker, "serverCoTask", 4096, (void*)i, 11, NULL);
+	}
 	mDnsStart(MDnsName);
 }
 
@@ -88,8 +98,6 @@ void server(void*)
 		return;
 	}
 
-	IOSocketStream socketStream;
-
 	while (serverRunning)
 	{
 		printf("server: socket listening\n");
@@ -123,15 +131,44 @@ void server(void*)
 
 		printf("server: socket accepted ip address: %s\n", addr_str);
 
-		socketStream.setSocket(sock);
-		recieve(socketStream);
-		vTaskDelay(100 / portTICK_PERIOD_MS); // 确保完全发送
-
-		shutdown(sock, 0);
-		close(sock);
+		size_t index = 0;
+		while (!socketStreamWindows[index].setSocket(sock))
+		{
+			index++;
+			if (index >= socketStreamWindowNumber)
+			{
+				index = 0;
+				printf("server: all window was occupyed\n");
+				vTaskDelay(100 / portTICK_PERIOD_MS);
+			}
+		}
+		printf("SocketStreamWindow state: %d / %d\n", SocketStreamWindow::getEnabledCount(), socketStreamWindowNumber);
+		vTaskDelay(1);
 	}
 
 	close(listen_sock);
+	vTaskDelete(NULL);
+}
+
+void serverCoworker(void* coworkerIndex)
+{
+	printf("Coworker %d started\n", (int)coworkerIndex);
+	while (serverRunning)
+	{
+		for (unsigned char i = 0; i < socketStreamWindowNumber; i++)
+		{
+			//每一个窗口
+			if (!socketStreamWindows[i].enable()) continue;
+			if (socketStreamWindows[i].check())
+			{
+				printf("coworker%d: working on window %d\n", (int)coworkerIndex, i);
+				recieve(socketStreamWindows[i].getSocketStream());
+			}
+			socketStreamWindows[i].disable();
+		}
+		vTaskDelay(1);
+	}
+	printf("Coworker %d ended\n", (int)coworkerIndex);
 	vTaskDelete(NULL);
 }
 
@@ -249,19 +286,14 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 
 	if (stringCompare((char*)uri, strlen(uri), "/api/setLightLevel", 18))
 	{
-		HttpRespond respond;
-
-		{
-			respond.cookies.clear();
-
-			respond.heads.clear();
-			respond.heads.add({ "Content-Type", " text/plain; charset=utf-8" });
-		}
 		char body[10] = "";
 		socketStream.read(body, sizeof(body));
 		setPWMDuty(atoi((const char*)body), 100);
 
 		sendOk(socketStream);
+		socketStream.sendNow();
+		vTaskDelay(100 / portTICK_PERIOD_MS);
+		socketStream.close();
 		return;
 	}
 	else if (stringCompare((char*)uri, strlen(uri), "/api/serverOff", 14))
@@ -275,8 +307,9 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 			respond.heads.add({ "Content-Type", " text/plain; charset=utf-8" });
 		}
 
-		sendOk(socketStream);
+		socketStream.sendNow();
 		vTaskDelay(100 / portTICK_PERIOD_MS);
+		socketStream.close();
 
 		stopTemperature();
 		wifiDisconnect();
@@ -316,6 +349,8 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 
 		respond.send(socketStream);
 		socketStream.sendNow();
+		vTaskDelay(100 / portTICK_PERIOD_MS);
+		socketStream.close();
 	}
 	else if (stringCompare((char*)uri, strlen(uri), "/api/floor", 10))
 	{
@@ -325,6 +360,10 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 		socketStream.read(path + sizeof(FlashPath) - 1, pathSize - sizeof(FlashPath) + 1);
 		apiFloor(socketStream, path);
 		delete[] path;
+
+		socketStream.sendNow();
+		vTaskDelay(100 / portTICK_PERIOD_MS);
+		socketStream.close();
 		return;
 	}
 	else
@@ -343,6 +382,8 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 		respond.send(socketStream);
 
 		socketStream.sendNow();
+		vTaskDelay(100 / portTICK_PERIOD_MS);
+		socketStream.close();
 		return;
 	}
 }
@@ -359,6 +400,9 @@ void httpPut(IOSocketStream& socketStream, HttpRequest& request)
 		newFloor(path);
 		tree(FlashPath); //[debug]
 		sendOk(socketStream);
+		socketStream.sendNow();
+		vTaskDelay(100 / portTICK_PERIOD_MS);
+		socketStream.close();
 		return;
 	}
 	else
@@ -368,6 +412,9 @@ void httpPut(IOSocketStream& socketStream, HttpRequest& request)
 		{
 			printf("server: put file is too large\n");
 			sendOk(socketStream);
+			socketStream.sendNow();
+			vTaskDelay(100 / portTICK_PERIOD_MS);
+			socketStream.close();
 			return;
 		}
 
@@ -394,6 +441,9 @@ void httpPut(IOSocketStream& socketStream, HttpRequest& request)
 
 		tree(FlashPath); //[debug]
 		sendOk(socketStream);
+		socketStream.sendNow();
+		vTaskDelay(100 / portTICK_PERIOD_MS);
+		socketStream.close();
 	}
 }
 
@@ -521,6 +571,4 @@ void apiFloor(OSocketStream& socketStream, const char* path)
 	respond.send(socketStream);
 
 	delete[] body; //body is deleted here
-
-	socketStream.sendNow();
 }
