@@ -39,7 +39,12 @@
         "sstream": "cpp",
         "system_error": "cpp",
         "typeinfo": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "random": "cpp",
+        "semaphore": "cpp",
+        "socket": "cpp",
+        "executor": "cpp",
+        "io_context": "cpp"
     },
     "cmake.configureOnOpen": false,
     "C_Cpp.errorSquiggles": "disabled"

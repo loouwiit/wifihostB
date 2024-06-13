@@ -1,0 +1,1 @@
+void mDnsStart(const char name[]);

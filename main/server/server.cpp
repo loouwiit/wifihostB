@@ -10,6 +10,7 @@
 #include "http.hpp"
 #include "wifi.hpp"
 #include "tempture.hpp"
+#include "mDns.hpp"
 
 #include "pwm.hpp"
 #include "buildinHtml/file.hpp"
@@ -18,6 +19,7 @@
 static uint8_t autoRestartTimes = 0;
 static uint8_t maxRestartTimes = 0;
 
+constexpr char MDnsName[] = "esp32s3";
 constexpr char formatingPassword[] = "I know exactly what I'm doing";
 constexpr size_t PutMaxSize = 1024 * 1024;
 constexpr size_t PutBufferSize = 64;
@@ -42,6 +44,7 @@ void startServer(uint8_t maxAutoRestartTimes)
 	autoRestartTimes = 0;
 	maxRestartTimes = maxAutoRestartTimes;
 	xTaskCreate(server, "serverTask", 4096, nullptr, 10, NULL);
+	mDnsStart(MDnsName);
 }
 
 void server(void*)
