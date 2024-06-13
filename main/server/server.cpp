@@ -298,15 +298,7 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 	}
 	else if (stringCompare((char*)uri, strlen(uri), "/api/serverOff", 14))
 	{
-		HttpRespond respond;
-
-		{
-			respond.cookies.clear();
-
-			respond.heads.clear();
-			respond.heads.add({ "Content-Type", " text/plain; charset=utf-8" });
-		}
-
+		sendOk(socketStream);
 		socketStream.sendNow();
 		vTaskDelay(100 / portTICK_PERIOD_MS);
 		socketStream.close();
