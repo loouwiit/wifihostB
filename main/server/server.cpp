@@ -296,6 +296,25 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 		socketStream.close();
 		return;
 	}
+	else if (stringCompare((char*)uri, strlen(uri), "/api/getLightLevel", 18))
+	{
+		HttpRespond respond;
+		{
+			respond.cookies.clear();
+
+			respond.heads.clear();
+			respond.heads.add({ "Content-Type", " text/plain; charset=utf-8" });
+		}
+		char string[33] = "";
+		__itoa(getPWMDuty(), string, 10);
+		respond.setBody(string);
+		respond.setBodyLenght(strlen(string));
+
+		respond.send(socketStream);
+		socketStream.sendNow();
+		vTaskDelay(100 / portTICK_PERIOD_MS);
+		socketStream.close();
+	}
 	else if (stringCompare((char*)uri, strlen(uri), "/api/serverOff", 14))
 	{
 		sendOk(socketStream);
