@@ -1,8 +1,8 @@
 	let lightLevelRangeElement = document.getElementById("lightLevelRange");
 	let lightLevelLabelElement = document.getElementById("lightLevelLabel");
 	let lightLevelNextUpdateTime = 0;
-	const lightLevelUpdateTime = 500;
-
+	const lightLevelUpdateTime = 200;
+	
 	function sendLightLevel(lightLevel) {
 		var request = new XMLHttpRequest();
 		request.open("POST", "/api/setLightLevel");
