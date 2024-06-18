@@ -1,10 +1,12 @@
 #include <driver/temperature_sensor.h>
+#include <mutex>
 #include "tempture.hpp"
 
 static temperature_sensor_config_t temp_sensor;
 static temperature_sensor_handle_t temp_handle = NULL;
 static float temperature;
 static bool tempratureEnabled = false;
+std::mutex temperatureMutex;
 
 void initTemperature()
 {
@@ -28,7 +30,9 @@ void stopTemperature()
 float getTemperature()
 {
 	if (!tempratureEnabled) return FLT_MAX;
+	if (!temperatureMutex.try_lock()) return FLT_MAX;
 	auto ret = temperature_sensor_get_celsius(temp_handle, &temperature);
+	temperatureMutex.unlock();
 	if (ret == ESP_OK)
 		return temperature;
 	else
