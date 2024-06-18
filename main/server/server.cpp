@@ -292,8 +292,6 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 
 		sendOk(socketStream);
 		socketStream.sendNow();
-		vTaskDelay(100 / portTICK_PERIOD_MS);
-		socketStream.close();
 		return;
 	}
 	else if (stringCompare((char*)uri, strlen(uri), "/api/getLightLevel", 18))
@@ -312,8 +310,6 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 
 		respond.send(socketStream);
 		socketStream.sendNow();
-		vTaskDelay(100 / portTICK_PERIOD_MS);
-		socketStream.close();
 	}
 	else if (stringCompare((char*)uri, strlen(uri), "/api/getTemperature", 19))
 	{
@@ -331,8 +327,6 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 
 		respond.send(socketStream);
 		socketStream.sendNow();
-		vTaskDelay(100 / portTICK_PERIOD_MS);
-		socketStream.close();
 	}
 	else if (stringCompare((char*)uri, strlen(uri), "/api/serverOff", 14))
 	{
@@ -379,8 +373,6 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 
 		respond.send(socketStream);
 		socketStream.sendNow();
-		vTaskDelay(100 / portTICK_PERIOD_MS);
-		socketStream.close();
 	}
 	else if (stringCompare((char*)uri, strlen(uri), "/api/floor", 10))
 	{
@@ -392,8 +384,6 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 		delete[] path;
 
 		socketStream.sendNow();
-		vTaskDelay(100 / portTICK_PERIOD_MS);
-		socketStream.close();
 		return;
 	}
 	else
@@ -412,8 +402,6 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 		respond.send(socketStream);
 
 		socketStream.sendNow();
-		vTaskDelay(100 / portTICK_PERIOD_MS);
-		socketStream.close();
 		return;
 	}
 }
