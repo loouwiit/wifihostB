@@ -305,10 +305,29 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 			respond.heads.clear();
 			respond.heads.add({ "Content-Type", " text/plain; charset=utf-8" });
 		}
-		char string[33] = "";
-		__itoa(getPWMDuty(), string, 10);
+		char string[35] = "";
+		size_t bodyLenght = sprintf(string, "%ld", getPWMDuty());
 		respond.setBody(string);
-		respond.setBodyLenght(strlen(string));
+		respond.setBodyLenght(bodyLenght);
+
+		respond.send(socketStream);
+		socketStream.sendNow();
+		vTaskDelay(100 / portTICK_PERIOD_MS);
+		socketStream.close();
+	}
+	else if (stringCompare((char*)uri, strlen(uri), "/api/getTemperature", 19))
+	{
+		HttpRespond respond;
+		{
+			respond.cookies.clear();
+
+			respond.heads.clear();
+			respond.heads.add({ "Content-Type", " text/plain; charset=utf-8" });
+		}
+		char string[20] = "";
+		size_t bodyLenght = sprintf(string, "%f", getTemperature());
+		respond.setBody(string);
+		respond.setBodyLenght(bodyLenght);
 
 		respond.send(socketStream);
 		socketStream.sendNow();
