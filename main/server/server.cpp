@@ -462,6 +462,7 @@ void httpPut(IOSocketStream& socketStream, HttpRequest& request)
 			readCount = socketStream.readByte(buffer, PutBufferSize);
 			file.write(buffer, readCount);
 			left -= readCount;
+			vTaskDelay(1);
 		}
 
 		tree(FlashPath); //[debug]
