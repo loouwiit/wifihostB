@@ -1,10 +1,10 @@
 let temperatureElement = document.getElementById("temperature");
 
 let temperatureNextUpdateTime = 0;
-const temperatureUpdateTime = 1000;
-const temperatureAutoUpdateTime = 10000;
+const temperatureUpdateTime = 100;
+const temperatureAutoUpdateTime = 5000;
 const temperatureTimeOutTime = 2000;
-const temperatureTimeOutAddTime = 28000;
+const temperatureTimeOutAddTime = 8000;
 
 function getTemperatureCallback(temperature) {
 	var date = new Date();
