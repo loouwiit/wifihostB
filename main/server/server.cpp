@@ -430,8 +430,6 @@ void httpPut(IOSocketStream& socketStream, HttpRequest& request)
 		tree(FlashPath); //[debug]
 		sendOk(socketStream);
 		socketStream.sendNow();
-		vTaskDelay(100 / portTICK_PERIOD_MS);
-		socketStream.close();
 		return;
 	}
 	else
@@ -442,8 +440,6 @@ void httpPut(IOSocketStream& socketStream, HttpRequest& request)
 			printf("server: put file is too large\n");
 			sendOk(socketStream);
 			socketStream.sendNow();
-			vTaskDelay(100 / portTICK_PERIOD_MS);
-			socketStream.close();
 			return;
 		}
 
@@ -471,8 +467,6 @@ void httpPut(IOSocketStream& socketStream, HttpRequest& request)
 		tree(FlashPath); //[debug]
 		sendOk(socketStream);
 		socketStream.sendNow();
-		vTaskDelay(100 / portTICK_PERIOD_MS);
-		socketStream.close();
 	}
 }
 
