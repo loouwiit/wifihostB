@@ -313,6 +313,7 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 	}
 	else if (stringCompare((char*)uri, strlen(uri), "/api/getTemperature", 19))
 	{
+		float temp = getTemperature();
 		HttpRespond respond;
 		{
 			respond.cookies.clear();
@@ -320,10 +321,20 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 			respond.heads.clear();
 			respond.heads.add({ "Content-Type", " text/plain; charset=utf-8" });
 		}
-		char string[20] = "";
-		size_t bodyLenght = sprintf(string, "%f", getTemperature());
-		respond.setBody(string);
-		respond.setBodyLenght(bodyLenght);
+		if (temp != FLT_MAX)
+		{
+			char string[20] = "";
+			size_t bodyLenght = sprintf(string, "%f", temp);
+			respond.setBody(string);
+			respond.setBodyLenght(bodyLenght);
+		}
+		else
+		{
+			respond.setStatus(HttpStatus::InternalServerError);
+			respond.setReason(HttpReason::InternalServerError);
+			respond.setBody((void*)HttpReason::InternalServerError);
+			respond.setBodyLenght(sizeof(HttpReason::InternalServerError) - 1);
+		}
 
 		respond.send(socketStream);
 		socketStream.sendNow();
@@ -398,7 +409,7 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 		respond.setStatus(HttpStatus::BadRequest);
 		respond.setReason(HttpReason::BadRequest);
 		respond.setBody((void*)HttpReason::BadRequest);
-		respond.setBodyLenght(sizeof(HttpReason::BadRequest));
+		respond.setBodyLenght(sizeof(HttpReason::BadRequest) - 1);
 		respond.send(socketStream);
 
 		socketStream.sendNow();
