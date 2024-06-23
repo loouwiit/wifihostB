@@ -15,7 +15,7 @@ constexpr const size_t HttpStringPairsAddSpeed = 2;
 
 constexpr const size_t HttpHeadsBufferLenght = 512;
 
-constexpr const size_t HttpBodySendingBufferLenght = 64;
+constexpr const size_t HttpBodySendingBufferLenght = 1024;
 
 enum class HttpMethod
 {

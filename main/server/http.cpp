@@ -1237,6 +1237,10 @@ void HttpRespond::send(OSocketStream& socketStream)
 			vTaskDelay(1);
 		}
 	}
+
+#if false
+		printf("HttpRespond::send: stack high water = %u\n", uxTaskGetStackHighWaterMark(nullptr));
+#endif
 }
 
 void HttpRespond::setStatus(HttpStatus status)

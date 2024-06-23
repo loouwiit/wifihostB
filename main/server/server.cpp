@@ -23,7 +23,7 @@ static uint8_t maxRestartTimes = 0;
 constexpr char MDnsName[] = "esp32s3";
 constexpr char formatingPassword[] = "I know exactly what I'm doing";
 constexpr size_t PutMaxSize = 1024 * 1024; //1M
-constexpr size_t PutBufferSize = 64;
+constexpr size_t PutBufferSize = 512;
 
 constexpr size_t socketStreamWindowNumber = 20;
 constexpr size_t coworkerNumber = 4;
@@ -512,7 +512,14 @@ void httpPut(IOSocketStream& socketStream, HttpRequest& request)
 			vTaskDelay(1);
 		}
 
+#if true
 		tree(FlashPath); //[debug]
+#endif
+
+#if false
+		printf("coworker:httpPut(): stack high water = %u\n", uxTaskGetStackHighWaterMark(nullptr));
+#endif
+
 		sendOk(socketStream);
 		socketStream.sendNow();
 	}
