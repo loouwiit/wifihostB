@@ -45,7 +45,8 @@
         "socket": "cpp",
         "executor": "cpp",
         "io_context": "cpp",
-        "mutex": "cpp"
+        "mutex": "cpp",
+        "new": "cpp"
     },
     "cmake.configureOnOpen": false,
     "C_Cpp.errorSquiggles": "disabled"

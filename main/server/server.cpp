@@ -587,6 +587,7 @@ void restart()
 		wifiDisconnect();
 		wifiStop();
 		serverRunning = false;
+		startTemperature();
 	}
 }
 
