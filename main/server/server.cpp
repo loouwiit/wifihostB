@@ -583,6 +583,9 @@ void restart()
 	else
 	{
 		printf("restart %u times, which is the max times\n", autoRestartTimes);
+		stopTemperature();
+		wifiDisconnect();
+		wifiStop();
 		serverRunning = false;
 	}
 }
