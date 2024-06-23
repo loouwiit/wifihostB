@@ -20,7 +20,7 @@
 		<br />
 		<button id="newFloorButton" multiple>新建文件夹</button>
 	</div>
-	<br />
+	<p id="space">剩余空间/总空间:0/0(100%)</p>
 	<div id="explorer">
 		正在加载...
 	</div>
@@ -29,7 +29,8 @@
 <script>
 	let fileUploadElement = document.getElementById("fileUploadInput");
 	let newFloorElement = document.getElementById("newFloorNameInput");
-	let fileExplorerElement = document.getElementById("explorer")
+	let fileExplorerElement = document.getElementById("explorer");
+	let spaceElement = document.getElementById("space");
 
 	let place = "/";
 	const splitChar = '\n';
@@ -72,6 +73,22 @@
 		request.send(place);
 	}
 
+	function spaceUpdate(spaces) {
+		var free = spaces[0];
+		var totol = spaces[1];
+
+		spaceElement.innerHTML = "剩余空间(KiB)/总空间(KiB):";
+		spaceElement.innerHTML += (free / 1000).toString() + '/' + (totol / 1000).toString();
+		spaceElement.innerHTML += "(" + (free * 100 / totol).toString() + "%)";
+	}
+
+	function getSpace() {
+		var request = new XMLHttpRequest();
+		request.open("POST", "/api/getSpace");
+		request.onload = function () { spaceUpdate(this.responseText.split(',')); };
+		request.send("");
+	}
+
 	function update(files) {
 
 		if (files[0] == "" && place != "/") {
@@ -101,6 +118,7 @@
 		request.open("POST", "/api/floor");
 		request.onload = function () { update(this.responseText.split(splitChar)); };
 		request.send(place);
+		getSpace();
 	}
 
 	function upload(place, value) {
