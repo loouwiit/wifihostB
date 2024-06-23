@@ -49,6 +49,27 @@ void formatFlash()
 	}
 }
 
+void getSpace(uint64_t& free, uint64_t& totol, const char* path)
+{
+	esp_vfs_fat_info(path, &totol, &free);
+}
+
+uint64_t getFreeSpace(const char* path)
+{
+	uint64_t bytes_total = 0;
+	uint64_t bytes_free = 0;
+	esp_vfs_fat_info(path, &bytes_total, &bytes_free);
+	return bytes_free;
+}
+
+uint64_t getTotolSpace(const char* path)
+{
+	uint64_t bytes_total = 0;
+	uint64_t bytes_free = 0;
+	esp_vfs_fat_info(path, &bytes_total, &bytes_free);
+	return bytes_total;
+}
+
 bool tree(const char* path, unsigned char maxOffset, unsigned char offset)
 {
 	if (offset >= maxOffset)

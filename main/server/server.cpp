@@ -377,6 +377,37 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 		respond.send(socketStream);
 		socketStream.sendNow();
 	}
+	else if (stringCompare((char*)uri, strlen(uri), "/api/floor", 10))
+	{
+		size_t pathSize = sizeof(FlashPath) + request.getBodyLenght();
+		char* path = new char[pathSize];
+		strcpy(path, FlashPath);
+		socketStream.read(path + sizeof(FlashPath) - 1, pathSize - sizeof(FlashPath) + 1);
+		apiFloor(socketStream, path);
+		delete[] path;
+
+		socketStream.sendNow();
+		return;
+	}
+	else if (stringCompare((char*)uri, strlen(uri), "/api/getSpace", 13))
+	{
+		uint64_t free = 0;
+		uint64_t totol = 0;
+
+		char buffer[41] = "";
+		size_t count = 0;
+
+		getSpace(free, totol);
+
+		count = sprintf(buffer, "%llu,%llu", free, totol);
+
+		HttpRespond respond;
+		respond.setBody(buffer);
+		respond.setBodyLenght(count);
+
+		respond.send(socketStream);
+		socketStream.sendNow();
+	}
 	else if (stringCompare((char*)uri, strlen(uri), "/api/serverOff", 14))
 	{
 		sendOk(socketStream);
@@ -422,18 +453,6 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 
 		respond.send(socketStream);
 		socketStream.sendNow();
-	}
-	else if (stringCompare((char*)uri, strlen(uri), "/api/floor", 10))
-	{
-		size_t pathSize = sizeof(FlashPath) + request.getBodyLenght();
-		char* path = new char[pathSize];
-		strcpy(path, FlashPath);
-		socketStream.read(path + sizeof(FlashPath) - 1, pathSize - sizeof(FlashPath) + 1);
-		apiFloor(socketStream, path);
-		delete[] path;
-
-		socketStream.sendNow();
-		return;
 	}
 	else
 	{

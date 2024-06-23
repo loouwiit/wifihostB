@@ -10,6 +10,9 @@ constexpr size_t FlashMaxFileNumber = 4;
 bool mountFlash();
 void unmountFlash();
 void formatFlash();
+void getSpace(uint64_t& free, uint64_t& totol, const char* path = FlashPath);
+uint64_t getFreeSpace(const char* path = FlashPath);
+uint64_t getTotolSpace(const char* path = FlashPath);
 
 bool tree(const char* path, unsigned char maxOffset = 10, unsigned char offset = 0);
 
