@@ -486,7 +486,16 @@ void httpPut(IOSocketStream& socketStream, HttpRequest& request)
 		if (!file.isOpen())
 		{
 			printf("server: error in put file %s\n", path);
-			sendOk(socketStream);
+
+			HttpRespond respond;
+			respond.setBody((void*)HttpReason::InternalServerError);
+			respond.setBodyLenght(sizeof(HttpReason::InternalServerError) - 1);
+			respond.setStatus(HttpStatus::InternalServerError);
+			respond.setReason(HttpReason::InternalServerError);
+			respond.send(socketStream);
+
+			vTaskDelay(100 / portTICK_PERIOD_MS);
+			socketStream.close();
 			return;
 		}
 
