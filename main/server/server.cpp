@@ -152,21 +152,57 @@ void server(void*)
 
 void serverCoworker(void* coworkerIndex)
 {
+	static std::mutex scanMutex;
+	static size_t scanPosition = 0;
+
+	bool scanning = false;
+	size_t index = 0;
+
 	printf("Coworker %d started\n", (int)coworkerIndex);
 	while (serverRunning)
 	{
-		for (unsigned char i = 0; i < socketStreamWindowNumber; i++)
+		//尝试获取扫描权
+		//printf("coworker%d: waiting for scanning\n", (int)coworkerIndex);
+		scanMutex.lock();
+
+		//获取成功，加载起始点
+		scanning = true;
+		index = scanPosition;
+		//printf("coworker%d: scanning from %d\n", (int)coworkerIndex, (int)scanPosition);
+
+		while (scanning)
 		{
-			//每一个窗口
-			if (!socketStreamWindows[i].enable()) continue;
-			if (socketStreamWindows[i].check())
+			for (; index < socketStreamWindowNumber; index++)
 			{
-				printf("coworker%d: working on window %d\n", (int)coworkerIndex, i);
-				recieve(socketStreamWindows[i].getSocketStream());
+
+				//尝试激活每一个窗口
+				if (!socketStreamWindows[index].enable()) continue;
+
+				//已激活窗口，检查是否需要处理数据
+				//printf("coworker%d: checking %d\n", (int)coworkerIndex, (int)index);
+				if (socketStreamWindows[index].check())
+				{
+					//移交扫描权
+					scanPosition = index + 1 % socketStreamWindowNumber;
+					scanMutex.unlock();
+
+					//处理数据
+					//printf("coworker%d: working on window %d\n", (int)coworkerIndex, index);
+					recieve(socketStreamWindows[index].getSocketStream());
+					socketStreamWindows[index].disable(); //窗口已激活，现取消激活窗口
+
+					//取消自身扫描
+					index = socketStreamWindowNumber;
+					scanning = false;
+				}
+				else
+				{
+					socketStreamWindows[index].disable(); //窗口已激活，现取消激活窗口
+				}
 			}
-			socketStreamWindows[i].disable();
+			index = 0;
+			vTaskDelay(1); //一周下来都没有任务或刚处理完一个请求
 		}
-		vTaskDelay(1);
 	}
 	printf("Coworker %d ended\n", (int)coworkerIndex);
 	vTaskDelete(NULL);
@@ -502,6 +538,7 @@ void restart()
 	else
 	{
 		printf("restart %u times, which is the max times\n", autoRestartTimes);
+		serverRunning = false;
 	}
 }
 
