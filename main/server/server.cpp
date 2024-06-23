@@ -492,7 +492,7 @@ void httpPut(IOSocketStream& socketStream, HttpRequest& request)
 	else
 	{
 		//file
-		if (request.getBodyLenght() > PutMaxSize)
+		if (request.getBodyLenght() > PutMaxSize || request.getBodyLenght() > getFreeSpace())
 		{
 			printf("server: put file is too large\n");
 			sendOk(socketStream);
