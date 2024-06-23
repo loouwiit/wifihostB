@@ -46,7 +46,10 @@
         "executor": "cpp",
         "io_context": "cpp",
         "mutex": "cpp",
-        "new": "cpp"
+        "new": "cpp",
+        "buffer": "cpp",
+        "bitset": "cpp",
+        "algorithm": "cpp"
     },
     "cmake.configureOnOpen": false,
     "C_Cpp.errorSquiggles": "disabled"
