@@ -5,7 +5,7 @@
 
 constexpr char FlashPartitionLabel[] = "fat";
 constexpr char FlashPath[] = "/flash";
-constexpr size_t FlashMaxFileNumber = 4;
+constexpr size_t FlashMaxFileNumber = 16;
 
 bool mountFlash();
 void unmountFlash();
