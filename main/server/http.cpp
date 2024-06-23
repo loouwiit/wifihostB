@@ -786,7 +786,7 @@ void HttpHeads::send(OSocketStream& socketStream, bool cookieSet)
 	cookies.send(socketStream, cookieSet);
 
 	// Content-Lenght
-	if (contentLenght != 0)
+	// if (contentLenght != 0)
 	{
 		char buffer[21] = "";
 		size_t bufferLenght = 0;
