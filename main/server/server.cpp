@@ -233,6 +233,7 @@ void recieve(IOSocketStream& socketStream)
 		}
 
 		printf("server::recieve: body lenght = %u\n", request.getBodyLenght());
+		printf("\n");
 	}
 
 	switch (request.getMethod())

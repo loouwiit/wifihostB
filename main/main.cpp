@@ -47,13 +47,14 @@ void app_main()
 	setPWMDuty(1024, 500);
 	setPWMDuty(0, 500);
 
+#if false
 	while (1)
 	{
 		printf("tempture: %f\n", getTemperature());
 		vTaskDelay(1000 / portTICK_PERIOD_MS);
 	}
+#endif
 
-	stopTemperature();
 	return;
 }
 
