@@ -84,7 +84,7 @@ namespace HttpContentTypeName
 	constexpr char Javascript[] = "application/x-javascript; charset=utf-8";
 	constexpr char Css[] = "text/css; charset=utf-8";
 
-	constexpr char Other[] = "text/html; charset=utf-8";
+	constexpr char Other[] = "application/octet-stream; charset=utf-8";
 }
 
 //functions

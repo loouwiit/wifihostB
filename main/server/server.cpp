@@ -278,7 +278,8 @@ void httpGet(IOSocketStream& socketStream, HttpRequest& request)
 		respond.cookies.clear();
 
 		respond.heads.clear();
-		respond.heads.add({ "Content-Type", getContentTypeNameFromContentType(contentType) });
+		if (contentType != HttpContentType::Other)
+			respond.heads.add({ "Content-Type", getContentTypeNameFromContentType(contentType) });
 	}
 
 	if (prefixCompare(uri, strlen(uri), "/file", 5) || prefixCompare(uri, strlen(uri), "/File", 5) || prefixCompare(uri, strlen(uri), "/FILE", 5))
