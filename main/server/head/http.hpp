@@ -244,6 +244,9 @@ public:
 private:
 	HttpMethod method = HttpMethod::Get;
 	char* path = nullptr;
+
+	static size_t decodePercentUrl(char* url);
+	static char decodePercent(char A, char B);
 };
 
 // respond

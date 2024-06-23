@@ -873,7 +873,8 @@ void HttpRequest::receive(ISocketStream& socketStream)
 		size_t lenght = 0;
 
 		socketStream.ignoreVoid();
-		lenght = socketStream.getline(url, sizeof(url), ' ') + 1;
+		socketStream.getline(url, sizeof(url), ' ');
+		lenght = decodePercentUrl(url) + 1;
 		delete[] path;
 		path = new char[lenght];
 		memcpy(path, url, lenght);
@@ -967,6 +968,163 @@ void HttpRequest::setPath(const char* path)
 const char* HttpRequest::getPath()
 {
 	return path;
+}
+
+size_t HttpRequest::decodePercentUrl(char* url)
+{
+	size_t read = 0;
+	size_t write = 0;
+
+	//跳过没有%的地方
+	while (url[read] != '%' && url[read] != '\0') read++;
+
+	write = read;
+
+	while (url[read] != '\0')
+	{
+		if (url[read] == '%')
+		{
+			// %20
+			// s
+			url[write] = decodePercent(url[read + 1], url[read + 2]);
+			read += 3;
+			write++;
+		}
+		else
+		{
+			url[write] = url[read];
+			read++;
+			write++;
+		}
+	}
+	url[write] = '\0';
+	return write;
+}
+
+char HttpRequest::decodePercent(char A, char B)
+{
+	char ret = 0;
+
+	switch (A)
+	{
+	default:
+	case '0':
+		//ret += 0;
+		break;
+	case '1':
+		ret += 1;
+		break;
+	case '2':
+		ret += 2;
+		break;
+	case '3':
+		ret += 3;
+		break;
+	case '4':
+		ret += 4;
+		break;
+	case '5':
+		ret += 5;
+		break;
+	case '6':
+		ret += 6;
+		break;
+	case '7':
+		ret += 7;
+		break;
+	case '8':
+		ret += 8;
+		break;
+	case '9':
+		ret += 9;
+		break;
+	case 'A':
+	case 'a':
+		ret += 10;
+		break;
+	case 'B':
+	case 'b':
+		ret += 11;
+		break;
+	case 'C':
+	case 'c':
+		ret += 12;
+		break;
+	case 'D':
+	case 'd':
+		ret += 13;
+		break;
+	case 'E':
+	case 'e':
+		ret += 14;
+		break;
+	case 'F':
+	case 'f':
+		ret += 15;
+		break;
+	}
+	ret <<= 4;
+
+	switch (B)
+	{
+	default:
+	case '0':
+		//ret += 0;
+		break;
+	case '1':
+		ret += 1;
+		break;
+	case '2':
+		ret += 2;
+		break;
+	case '3':
+		ret += 3;
+		break;
+	case '4':
+		ret += 4;
+		break;
+	case '5':
+		ret += 5;
+		break;
+	case '6':
+		ret += 6;
+		break;
+	case '7':
+		ret += 7;
+		break;
+	case '8':
+		ret += 8;
+		break;
+	case '9':
+		ret += 9;
+		break;
+	case 'A':
+	case 'a':
+		ret += 10;
+		break;
+	case 'B':
+	case 'b':
+		ret += 11;
+		break;
+	case 'C':
+	case 'c':
+		ret += 12;
+		break;
+	case 'D':
+	case 'd':
+		ret += 13;
+		break;
+	case 'E':
+	case 'e':
+		ret += 14;
+		break;
+	case 'F':
+	case 'f':
+		ret += 15;
+		break;
+	}
+
+	return ret;
 }
 
 // respond
