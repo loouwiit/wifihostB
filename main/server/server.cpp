@@ -20,6 +20,7 @@
 static uint8_t autoRestartTimes = 0;
 static uint8_t maxRestartTimes = 0;
 
+constexpr char ServerPath[] = "/server";
 constexpr char MDnsName[] = "esp32s3";
 constexpr char formatingPassword[] = "I know exactly what I'm doing";
 constexpr size_t PutMaxSize = 1024 * 1024; //1M
@@ -282,8 +283,9 @@ void httpGet(IOSocketStream& socketStream, HttpRequest& request)
 			respond.heads.add({ "Content-Type", getContentTypeNameFromContentType(contentType) });
 	}
 
-	if (prefixCompare(uri, strlen(uri), "/file", 5) || prefixCompare(uri, strlen(uri), "/File", 5) || prefixCompare(uri, strlen(uri), "/FILE", 5))
+	if (stringCompare(uri, strlen(uri), "/file", 5) || stringCompare(uri, strlen(uri), "/File", 5) || stringCompare(uri, strlen(uri), "/FILE", 5))
 	{
+		//管理页面
 		respond.setBody((void*)HtmlFile);
 		respond.setBodyLenght(sizeof(HtmlFile) - 1);
 		respond.send(socketStream);
@@ -291,8 +293,19 @@ void httpGet(IOSocketStream& socketStream, HttpRequest& request)
 	else
 	{
 		IFile file;
-		char* path = new char[sizeof(FlashPath) + strlen(uri)];
-		sprintf(path, "%s%s", FlashPath, uri);
+		char* path = nullptr;
+		if (prefixCompare(uri, strlen(uri), "/file", 5) || prefixCompare(uri, strlen(uri), "/File", 5) || prefixCompare(uri, strlen(uri), "/FILE", 5))
+		{
+			//全部文件
+			path = new char[sizeof(FlashPath) + strlen(uri) - 5];
+			sprintf(path, "%s%s", FlashPath, uri + 5);
+		}
+		else
+		{
+			//转到serverPath下
+			path = new char[sizeof(FlashPath) + sizeof(ServerPath) + strlen(uri)];
+			sprintf(path, "%s%s%s", FlashPath, ServerPath, uri);
+		}
 		file.open(path);
 		delete[] path;
 		if (file.isOpen())
