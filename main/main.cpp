@@ -75,7 +75,7 @@ void setIo0()
 	gpio_config(&io_conf);
 
 	gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));
-	xTaskCreate(ioPressed, "ioPressed", 2048, NULL, 10, NULL);
+	xTaskCreate(ioPressed, "ioPressed", 3072, NULL, 10, NULL);
 
 	gpio_install_isr_service(0);
 	//hook isr handler for specific gpio pin
