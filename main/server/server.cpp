@@ -326,6 +326,7 @@ void httpGet(IOSocketStream& socketStream, HttpRequest& request)
 			respond.setReason(HttpReason::NotFound);
 		}
 		respond.send(socketStream);
+		file.close();
 	}
 
 	socketStream.sendNow();
