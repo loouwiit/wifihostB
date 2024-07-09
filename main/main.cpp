@@ -24,9 +24,12 @@ void ioPressed(void* arg);
 
 void app_main()
 {
-	setIo0();
 	startPWM((gpio_num_t)1);
+	setPWMDuty(128, 500);
+
+	setIo0();
 	mountFlash();
+	tree(PerfixRoot); //[debug]
 
 	ESP_ERROR_CHECK(esp_event_loop_create_default());
 	wifiInit();
@@ -45,7 +48,6 @@ void app_main()
 	printf("started\n");
 
 	setPWMDuty(1024, 500);
-	setPWMDuty(0, 500);
 
 #if false
 	while (1)
