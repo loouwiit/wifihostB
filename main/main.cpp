@@ -11,6 +11,7 @@
 #include "pwm.hpp"
 #include "wifi.hpp"
 #include "fat.hpp"
+#include "mem.hpp"
 #include "server/head/server.hpp"
 
 extern bool serverRunning;
@@ -29,6 +30,7 @@ void app_main()
 
 	setIo0();
 	mountFlash();
+	mountMem();
 	tree(PerfixRoot); //[debug]
 
 	ESP_ERROR_CHECK(esp_event_loop_create_default());

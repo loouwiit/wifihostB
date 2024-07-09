@@ -642,6 +642,14 @@ void apiFloor(OSocketStream& socketStream, const char* path)
 	for (size_t i = 0;i < contentCount[0];i++)
 	{
 		buffer = floor.read(Floor::Type::Floor);
+		if (buffer == nullptr)
+		{
+			printf("server: apiFloor: read null in floor %s", path);
+			totolSize = 0;
+			contentCount[0] = 0;
+			contentCount[1] = 0;
+			continue;
+		}
 		for (size_t j = 0; buffer[j] != '\0'; j++)
 		{
 			body[bodyOffset] = buffer[j];
@@ -656,6 +664,14 @@ void apiFloor(OSocketStream& socketStream, const char* path)
 	for (size_t i = 0;i < contentCount[1];i++)
 	{
 		buffer = floor.read(Floor::Type::File);
+		if (buffer == nullptr)
+		{
+			printf("server: apiFloor: read null in floor %s", path);
+			totolSize = 0;
+			contentCount[0] = 0;
+			contentCount[1] = 0;
+			continue;
+		}
 		for (size_t j = 0; buffer[j] != '\0'; j++)
 		{
 			body[bodyOffset] = buffer[j];
