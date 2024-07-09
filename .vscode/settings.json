@@ -49,7 +49,9 @@
         "new": "cpp",
         "buffer": "cpp",
         "bitset": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "forward_list": "cpp",
+        "cmath": "cpp"
     },
     "cmake.configureOnOpen": false,
     "C_Cpp.errorSquiggles": "disabled"
