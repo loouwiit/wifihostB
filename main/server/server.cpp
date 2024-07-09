@@ -5,6 +5,8 @@
 #include <esp_task.h>
 #include <lwip/sockets.h>
 
+#include "stringCompare.hpp"
+
 #include "tempture.hpp"
 #include "server.hpp"
 #include "http.hpp"
@@ -41,8 +43,6 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request);
 void httpPut(IOSocketStream& socketStream, HttpRequest& request);
 void httpDelete(IOSocketStream& socketStream, HttpRequest& request);
 void restart();
-bool prefixCompare(const char* string, size_t stringLength, const char* prefix, size_t prefixLength);
-bool stringCompare(const char* string, size_t stringLength, const char* standard, size_t standardLength);
 
 void apiFloor(OSocketStream& socketStream, const char* path);
 
@@ -602,30 +602,6 @@ void restart()
 		serverRunning = false;
 		startTemperature();
 	}
-}
-
-bool prefixCompare(const char* string, size_t stringLength, const char* prefix, size_t prefixLength)
-{
-	if (stringLength < prefixLength) return false; // 确保string的长度小等于prefix的长度
-	size_t i = 0;
-	while (i < prefixLength)
-	{
-		if (string[i] == prefix[i]) i++;
-		else return false;
-	}
-	return true;
-}
-
-bool stringCompare(const char* string, size_t stringLength, const char* standard, size_t standardLength)
-{
-	if (stringLength != standardLength) return false;
-	size_t i = 0;
-	while (i < stringLength)
-	{
-		if (string[i] == standard[i]) i++;
-		else return false;
-	}
-	return true;
 }
 
 void apiFloor(OSocketStream& socketStream, const char* path)
