@@ -297,14 +297,14 @@ void httpGet(IOSocketStream& socketStream, HttpRequest& request)
 		if (prefixCompare(uri, strlen(uri), "/file", 5) || prefixCompare(uri, strlen(uri), "/File", 5) || prefixCompare(uri, strlen(uri), "/FILE", 5))
 		{
 			//全部文件
-			path = new char[sizeof(FlashPath) + strlen(uri) - 5];
-			sprintf(path, "%s%s", FlashPath, uri + 5);
+			path = new char[sizeof(PerfixRoot) + strlen(uri) - 5];
+			sprintf(path, "%s%s", PerfixRoot, uri + 5);
 		}
 		else
 		{
 			//转到serverPath下
-			path = new char[sizeof(FlashPath) + sizeof(ServerPath) + strlen(uri)];
-			sprintf(path, "%s%s%s", FlashPath, ServerPath, uri);
+			path = new char[sizeof(PerfixRoot) + sizeof(ServerPath) + strlen(uri)];
+			sprintf(path, "%s%s%s", PerfixRoot, ServerPath, uri);
 		}
 		file.open(path);
 		delete[] path;
@@ -392,10 +392,10 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 	}
 	else if (stringCompare((char*)uri, strlen(uri), "/api/floor", 10))
 	{
-		size_t pathSize = sizeof(FlashPath) + request.getBodyLenght();
+		size_t pathSize = sizeof(PerfixRoot) + request.getBodyLenght();
 		char* path = new char[pathSize];
-		strcpy(path, FlashPath);
-		socketStream.read(path + sizeof(FlashPath) - 1, pathSize - sizeof(FlashPath) + 1);
+		strcpy(path, PerfixRoot);
+		socketStream.read(path + sizeof(PerfixRoot) - 1, pathSize - sizeof(PerfixRoot) + 1);
 		apiFloor(socketStream, path);
 		delete[] path;
 
@@ -490,14 +490,14 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 void httpPut(IOSocketStream& socketStream, HttpRequest& request)
 {
 	const char* uri = request.getPath();
-	char* path = new char[sizeof(FlashPath) + strlen(uri)];
-	size_t pathLength = sprintf(path, "%s%s", FlashPath, uri);
+	char* path = new char[sizeof(PerfixRoot) + strlen(uri)];
+	size_t pathLength = sprintf(path, "%s%s", PerfixRoot, uri);
 
 	if (path[pathLength - 1] == '/')
 	{
 		//floor
 		newFloor(path);
-		tree(FlashPath); //[debug]
+		tree(PerfixRoot); //[debug]
 		sendOk(socketStream);
 		socketStream.sendNow();
 		return;
@@ -553,7 +553,7 @@ void httpPut(IOSocketStream& socketStream, HttpRequest& request)
 		}
 
 #if true
-		tree(FlashPath); //[debug]
+		tree(PerfixRoot); //[debug]
 #endif
 
 #if false
@@ -568,8 +568,8 @@ void httpPut(IOSocketStream& socketStream, HttpRequest& request)
 void httpDelete(IOSocketStream& socketStream, HttpRequest& request)
 {
 	const char* uri = request.getPath();
-	char* path = new char[sizeof(FlashPath) + strlen(uri)];
-	size_t pathLength = sprintf(path, "%s%s", FlashPath, uri);
+	char* path = new char[sizeof(PerfixRoot) + strlen(uri)];
+	size_t pathLength = sprintf(path, "%s%s", PerfixRoot, uri);
 
 	if (path[pathLength - 1] == '/')
 	{
@@ -581,7 +581,7 @@ void httpDelete(IOSocketStream& socketStream, HttpRequest& request)
 		//file
 		removeFile(path);
 	}
-	tree(FlashPath); //[debug]
+	tree(PerfixRoot); //[debug]
 	sendOk(socketStream);
 }
 

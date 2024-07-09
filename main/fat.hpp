@@ -2,17 +2,17 @@
 #include <esp_vfs_fat.h>
 #include <dirent.h>
 #include "nonCopyAble.hpp"
+#include "vfs.hpp"
 
 constexpr char FlashPartitionLabel[] = "fat";
-constexpr char FlashPath[] = "/flash";
 constexpr size_t FlashMaxFileNumber = 16;
 
 bool mountFlash();
 void unmountFlash();
 void formatFlash();
-void getSpace(uint64_t& free, uint64_t& totol, const char* path = FlashPath);
-uint64_t getFreeSpace(const char* path = FlashPath);
-uint64_t getTotolSpace(const char* path = FlashPath);
+void getSpace(uint64_t& free, uint64_t& totol, const char* path = PerfixRoot);
+uint64_t getFreeSpace(const char* path = PerfixRoot);
+uint64_t getTotolSpace(const char* path = PerfixRoot);
 
 bool tree(const char* path, unsigned char maxOffset = 10, unsigned char offset = 0);
 
@@ -85,13 +85,8 @@ public:
 class Floor
 {
 public:
-	using TypeBase = uint8_t;
-	enum class Type : TypeBase
-	{
-		File = DT_REG,
-		Floor = DT_DIR,
-		Both = File | Floor,
-	};
+	using TypeBase = FileTypeBase;
+	using Type = FileType;
 
 	~Floor();
 

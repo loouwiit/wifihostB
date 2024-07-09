@@ -1,20 +1,21 @@
-#include <fat.hpp>
-#include <string.h>
+#include <sys/stat.h>
+#include <cstring> //strlen()
+#include "fat.hpp"
 
 static wl_handle_t s_wl_handle = WL_INVALID_HANDLE;
 
 bool mountFlash()
 {
 	printf("fat: mounting flash\n");
-	const esp_vfs_fat_mount_config_t mount_config = {
-	   .format_if_mount_failed = false,
-	   .max_files = FlashMaxFileNumber,
-	   .allocation_unit_size = CONFIG_WL_SECTOR_SIZE,
-	   .disk_status_check_enable = false
-	};
+	esp_vfs_fat_mount_config_t mount_config{};
+
+	mount_config.format_if_mount_failed = false;
+	mount_config.max_files = FlashMaxFileNumber;
+	mount_config.allocation_unit_size = CONFIG_WL_SECTOR_SIZE;
+	mount_config.disk_status_check_enable = false;
 
 	esp_err_t err;
-	err = esp_vfs_fat_spiflash_mount_rw_wl(FlashPath, FlashPartitionLabel, &mount_config, &s_wl_handle);
+	err = esp_vfs_fat_spiflash_mount_rw_wl(PerfixFlash, FlashPartitionLabel, &mount_config, &s_wl_handle);
 
 	if (err == ESP_OK)
 	{
@@ -31,14 +32,14 @@ bool mountFlash()
 void unmountFlash()
 {
 	printf("unmounting flash\n");
-	ESP_ERROR_CHECK(esp_vfs_fat_spiflash_unmount_rw_wl(FlashPath, s_wl_handle));
+	ESP_ERROR_CHECK(esp_vfs_fat_spiflash_unmount_rw_wl(PerfixFlash, s_wl_handle));
 	printf("flash unmounted\n");
 }
 
 void formatFlash()
 {
 	printf("fat: formating flash\n");
-	esp_err_t ret = esp_vfs_fat_spiflash_format_rw_wl(FlashPath, FlashPartitionLabel);
+	esp_err_t ret = esp_vfs_fat_spiflash_format_rw_wl(PerfixFlash, FlashPartitionLabel);
 	if (ret == ESP_OK)
 	{
 		printf("fat: format success\n");
@@ -193,14 +194,7 @@ bool removeFile(const char* path)
 
 bool newFloor(const char* path)
 {
-	size_t i = 0;
-	while (path[i] == FlashPath[i] && path[i] != '\0' && FlashPath[i] != '\0')
-		i++;
-	//直接调用FatFs库函数，跳过VFS前缀
-	if (FlashPath[i] == '\0')
-		return f_mkdir(path + i) == 0;
-	else
-		return false;
+	return mkdir(path, 0777) == 0;
 }
 
 bool testFloor(const char* path)
