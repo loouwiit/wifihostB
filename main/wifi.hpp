@@ -10,6 +10,7 @@ void wifiStop();
 void wifiDisconnect();
 void wifiConnect();
 
+bool wifiIsStarted();
 bool wifiIsConnect();
 
 // void wifiScan();

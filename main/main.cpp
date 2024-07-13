@@ -102,14 +102,18 @@ void ioPressed(void* arg)
 		{
 			printf("GPIO[%lu] intr, val: %d\n", io_num, gpio_get_level((gpio_num_t)io_num));
 
-			if (!serverRunning)
+			if (!wifiIsConnect())
 			{
 				stopTemperature();
-				serverRunning = true;
-				wifiStart();
+				if (!wifiIsStarted()) wifiStart();
 				wifiConnect();
-				startServer();
 				startTemperature();
+			}
+
+			if (!serverRunning)
+			{
+				serverRunning = true;
+				startServer();
 			}
 		}
 	}

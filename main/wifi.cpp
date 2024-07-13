@@ -21,6 +21,7 @@ static EventGroupHandle_t s_wifi_event_group;
 static int s_retry_num = 0;
 static bool isReconnectEnable = false;
 static bool isWifiConnected = false;
+static bool isWifiStarted = false;
 
 static esp_event_handler_instance_t instance_any_id;
 static esp_event_handler_instance_t instance_got_ip;
@@ -45,8 +46,21 @@ void event_handler(void* arg, esp_event_base_t event_base,
 				else
 				{
 					xEventGroupSetBits(s_wifi_event_group, WIFI_FAIL_BIT);
+
+					// 重联失败
+					if (isWifiConnected)
+					{
+						// 丢失连接
+						printf("wifi connection lost\n");
+						isWifiConnected = false;
+					}
+					else
+					{
+						//连接失败
+					}
 				}
 				ESP_LOGI(TAG, "connect to the AP fail");
+
 			}
 		}
 	}
@@ -135,6 +149,7 @@ void wifiInitSta()
 void wifiStart()
 {
 	ESP_ERROR_CHECK(esp_wifi_start());
+	isWifiStarted = true;
 	isWifiConnected = false;
 	printf("wifi started\n");
 }
@@ -142,6 +157,7 @@ void wifiStart()
 void wifiStop()
 {
 	ESP_ERROR_CHECK(esp_wifi_stop());
+	isWifiStarted = false;
 	isWifiConnected = false;
 	printf("wifi stopped\n");
 }
@@ -191,6 +207,11 @@ void wifiDisconnect()
 	isWifiConnected = false;
 	esp_wifi_disconnect();
 	printf("wifi disconnected\n");
+}
+
+bool wifiIsStarted()
+{
+	return isWifiStarted;
 }
 
 bool wifiIsConnect()
