@@ -42,7 +42,7 @@ constexpr char WIFIPASSWORD[64] = "your wifi password";
 碎碎念：记得加限流电阻，3.3v直连LED有可能将其烧毁！  
 
 ### 按钮——IO0
-[./main/main.cpp](main/main.cpp)中有`void setIo0();`，可自定义甚至删除该功能。在本项目中，IO0用于启动wifi与服务端。但由于其自动启动且几乎不关闭，该功能几乎没有用处。
+[./main/main.cpp](main/main.cpp)中有`void setIo0();`，可自定义。在本项目中，IO0用于启动并连接wifi、启动服务端。
 
 ### 分区表
 文件位置: [./partitions.csv](partitions.csv)  
