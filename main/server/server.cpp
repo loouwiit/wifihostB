@@ -28,7 +28,7 @@ constexpr char formatingPassword[] = "I know exactly what I'm doing";
 constexpr size_t PutMaxSize = 1024 * 1024; //1M
 constexpr size_t PutBufferSize = 512;
 
-constexpr size_t socketStreamWindowNumber = 20;
+constexpr size_t socketStreamWindowNumber = 16;
 constexpr size_t coworkerNumber = 5; //极限测试中刚刚跑不满的数量
 
 bool serverRunning = false;

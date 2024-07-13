@@ -94,6 +94,7 @@ http://esp32s3.local/file/testFloor/testFile 将访问PerfixRoot/testFloor/testF
 
 #### 并发设置
 最大连接数：[./main/server/server.cpp](main/server/server.cpp)中的`socketStreamWindowNumber`。  
+请注意：LWIP最大支持16个socket，默认10个socket。修改最大连接数时记得留心LWIP设定。  
 `coWorker`数：[./main/server/server.cpp](main/server/server.cpp)中的`coworkerNumber`。  
 请注意ESP32S3为双核SoC，增加的并发数不一定能提高性能。但能缓解大型请求下的资源挤占问题。
 
