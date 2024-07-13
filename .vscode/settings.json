@@ -51,7 +51,11 @@
         "bitset": "cpp",
         "algorithm": "cpp",
         "forward_list": "cpp",
-        "cmath": "cpp"
+        "cmath": "cpp",
+        "optional": "cpp",
+        "string_view": "cpp",
+        "variant": "cpp",
+        "cstring": "cpp"
     },
     "cmake.configureOnOpen": false,
     "C_Cpp.errorSquiggles": "disabled"
