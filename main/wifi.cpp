@@ -25,7 +25,7 @@ bool wifiApStarted = false;
 esp_event_handler_instance_t instance_any_id;
 esp_event_handler_instance_t instance_got_ip;
 
-void wifiStationSetConfig(const char* ssid, const char* password);
+bool wifiStationSetConfig(const char* ssid, const char* password);
 
 void event_handler(void* arg, esp_event_base_t eventBase, int32_t eventId, void* eventData)
 {
@@ -90,6 +90,7 @@ void event_handler(void* arg, esp_event_base_t eventBase, int32_t eventId, void*
 		if (eventId == IP_EVENT_STA_GOT_IP)
 		{
 			ip_event_got_ip_t* event = (ip_event_got_ip_t*)eventData;
+			ESP_LOGI(TAG, "connect success");
 			ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
 			wifiStationConnected = true;
 		}
@@ -137,7 +138,7 @@ void wifiDeinit()
 	esp_wifi_deinit();
 }
 
-void wifiStationSetConfig(const char* ssid, const char* password)
+bool wifiStationSetConfig(const char* ssid, const char* password)
 {
 	ESP_LOGI(TAG, "searching for %s", ssid);
 
@@ -152,7 +153,7 @@ void wifiStationSetConfig(const char* ssid, const char* password)
 	if (esp_wifi_scan_get_ap_record(&apInfo) != ESP_OK)
 	{
 		ESP_LOGI(TAG, "not searched");
-		return;
+		return false;
 	}
 
 
@@ -172,6 +173,8 @@ void wifiStationSetConfig(const char* ssid, const char* password)
 
 	esp_wifi_set_config(WIFI_IF_STA, &config);
 	ESP_LOGI(TAG, "config setted");
+
+	return true;
 }
 
 bool wifiIsStarted()
@@ -257,8 +260,8 @@ void wifiStationStop()
 		ESP_LOGW(TAG, "station hasn't started, don't need stop");
 		return;
 	}
-	wifiStationStarted = false;
 	if (wifiStationWantConnect) wifiDisconnect();
+	wifiStationStarted = false;
 	wifi_mode_t mode;
 	esp_wifi_get_mode(&mode);
 	switch (mode)
@@ -319,10 +322,16 @@ void wifiConnect(const char* ssid, const char* password, unsigned char retryTime
 		ESP_LOGE(TAG, "station hasn't started, can't connet");
 		return;
 	}
-	if (wifiStationWantConnect) wifiDisconnect(); // 内含wifiStationConnected判断
 
 	// config
-	wifiStationSetConfig(ssid, password);
+	if (!wifiStationSetConfig(ssid, password))
+	{
+		// 设置失败
+		ESP_LOGI(TAG, "connect failed");
+		return;
+	}
+
+	if (wifiStationWantConnect) wifiDisconnect();
 
 	wifiStationWantConnect = true;
 	wifiRetryCount = retryTime;

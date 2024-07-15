@@ -10,7 +10,7 @@
 #include "tempture.hpp"
 #include "pwm.hpp"
 #include "wifi.hpp"
-#include "wifi.inl" //WIFISSID & WIFIPASSWORD
+#include "wifi.inl" //WIFISSID & WIFIPASSWORD & APSSID & APPASSWORD
 #include "fat.hpp"
 #include "mem.hpp"
 #include "server/head/server.hpp"
@@ -56,7 +56,7 @@ void app_main()
 
 			//启动AP
 			wifiApStart();
-			wifiApSet("ESP32S3", "12345678");
+			wifiApSet(APSSID, APPASSWORD);
 		}
 	}
 
@@ -132,7 +132,7 @@ void ioPressed(void* arg)
 				if (!wifiApIsStarted())
 				{
 					wifiApStart();
-					wifiApSet("ESP32S3", "12345678");
+					wifiApSet(APSSID, APPASSWORD);
 				}
 				startTemperature();
 			}

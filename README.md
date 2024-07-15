@@ -25,6 +25,9 @@
 ```
 constexpr char WIFISSID[32] = "your wifi ssid";
 constexpr char WIFIPASSWORD[64] = "your wifi password";
+
+constexpr char APSSID[32] = "ESP32S3";
+constexpr char APPASSWORD[64] = "12345678";
 ```
 
 请勿上传你的wifi名称及密码，避免泄露信息！

@@ -12,6 +12,7 @@
 #include "http.hpp"
 #include "socketStreamWindow.hpp"
 #include "wifi.hpp"
+#include "wifi.inl"
 #include "tempture.hpp"
 #include "mDns.hpp"
 
@@ -430,13 +431,56 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 		socketStream.close();
 
 		stopTemperature();
-		wifiDisconnect();
 		wifiStop();
 		serverRunning = false;
 		vTaskDelay(1000 / portTICK_PERIOD_MS);
 		startTemperature();
+	}
+	else if (stringCompare((char*)uri, strlen(uri), "/api/apStart", 12))
+	{
+		sendOk(socketStream);
+		if (!wifiApIsStarted()) wifiApStart();
 
-		return;
+		if (request.bodyLenght != 0)
+		{
+			char ssid[33];
+			char password[64];
+			socketStream.getline(ssid, sizeof(ssid));
+			socketStream.getline(password, sizeof(password));
+			wifiApSet(ssid, password);
+		}
+		else
+		{
+			wifiApSet(APSSID, APPASSWORD);
+		}
+	}
+	else if (stringCompare((char*)uri, strlen(uri), "/api/apStop", 11))
+	{
+		sendOk(socketStream);
+		if (wifiApIsStarted()) wifiApStop();
+	}
+	else if (stringCompare((char*)uri, strlen(uri), "/api/wifiStart", 14))
+	{
+		sendOk(socketStream);
+		if (!wifiStationIsStarted()) wifiStationStart();
+
+		if (request.bodyLenght != 0)
+		{
+			char ssid[33];
+			char password[64];
+			socketStream.getline(ssid, sizeof(ssid));
+			socketStream.getline(password, sizeof(password));
+			wifiConnect(ssid, password);
+		}
+		else
+		{
+			wifiConnect(WIFISSID, WIFIPASSWORD);
+		}
+	}
+	else if (stringCompare((char*)uri, strlen(uri), "/api/wifiStop", 13))
+	{
+		sendOk(socketStream);
+		if (wifiStationIsStarted()) wifiStationStop();
 	}
 	else if (stringCompare((char*)uri, strlen(uri), "/api/formatFlash", 16))
 	{
