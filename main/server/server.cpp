@@ -172,7 +172,7 @@ void serverCoworker(void* coworkerIndex)
 		index = scanPosition;
 		//printf("coworker%d: scanning from %d\n", (int)coworkerIndex, (int)scanPosition);
 
-		while (scanning)
+		while (scanning && serverRunning)
 		{
 			for (; index < socketStreamWindowNumber; index++)
 			{
@@ -205,6 +205,16 @@ void serverCoworker(void* coworkerIndex)
 			index = 0;
 			vTaskDelay(1); //一周下来都没有任务或刚处理完一个请求
 		}
+
+		// scanning && serverRunning不成立
+		if (scanning)
+		{
+			// scanning == true, serverRunning == false
+			// server关闭，移交扫描权，使其他线程发现关闭
+			scanning = false;
+			scanMutex.unlock();
+		}
+		// scanning == false，无需移交扫描权
 	}
 	printf("Coworker %d ended\n", (int)coworkerIndex);
 	vTaskDelete(NULL);
