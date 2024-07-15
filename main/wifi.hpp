@@ -1,16 +1,27 @@
+#include <esp_wifi_types_generic.h>
+
+/*
+* 先start，后操作
+*/
+
 void wifiInit();
 void wifiDeinit();
 
-void wifiInitSta();
-//void wifiInitAp();
-
+bool wifiIsStarted();
 void wifiStart();
 void wifiStop();
 
-void wifiDisconnect();
-void wifiConnect();
+bool wifiStationIsStarted();
+void wifiStationStart();
+void wifiStationStop();
+uint16_t wifiStationScan(wifi_ap_record_t* apInfo, uint16_t maxCount, char* ssid = nullptr);
 
-bool wifiIsStarted();
+bool wifiIsWantConnect();
 bool wifiIsConnect();
+void wifiConnect(const char* ssid, const char* password, unsigned char retryTime = 3);
+void wifiDisconnect();
 
-// void wifiScan();
+bool wifiApIsStarted();
+void wifiApStart();
+void wifiApSet(const char* ssid, const char* password, wifi_auth_mode_t authMode = wifi_auth_mode_t::WIFI_AUTH_WPA2_WPA3_PSK);
+void wifiApStop();

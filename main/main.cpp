@@ -10,6 +10,7 @@
 #include "tempture.hpp"
 #include "pwm.hpp"
 #include "wifi.hpp"
+#include "wifi.inl" //WIFISSID & WIFIPASSWORD
 #include "fat.hpp"
 #include "mem.hpp"
 #include "server/head/server.hpp"
@@ -33,14 +34,34 @@ void app_main()
 	mountMem();
 	tree(PerfixRoot); //[debug]
 
-	ESP_ERROR_CHECK(esp_event_loop_create_default());
 	wifiInit();
-	wifiInitSta();
+	wifiStart();
+
+	{
+		//Station模式连接wifi
+		wifiStationStart();
+		wifiConnect(WIFISSID, WIFIPASSWORD);
+
+		unsigned count = 0;
+		do
+		{
+			printf("[%u]waiting for connect\n", count++);
+			vTaskDelay(1000 / portTICK_PERIOD_MS);
+		} while (wifiIsWantConnect() && !wifiIsConnect()); //想连接但还没连上
+
+		if (!wifiIsConnect())
+		{
+			//连接失败
+			wifiStationStop();
+
+			//启动AP
+			wifiApStart();
+			wifiApSet("ESP32S3", "12345678");
+		}
+	}
 
 	{
 		serverRunning = true;
-		wifiStart();
-		wifiConnect();
 		startServer();
 	}
 
@@ -104,9 +125,15 @@ void ioPressed(void* arg)
 
 			if (!wifiIsConnect())
 			{
+				// 没有wifi连接->启动Ap
 				stopTemperature();
 				if (!wifiIsStarted()) wifiStart();
-				wifiConnect();
+				if (wifiStationIsStarted()) wifiStationStop();
+				if (!wifiApIsStarted())
+				{
+					wifiApStart();
+					wifiApSet("ESP32S3", "12345678");
+				}
 				startTemperature();
 			}
 
