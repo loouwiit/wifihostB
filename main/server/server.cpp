@@ -264,6 +264,7 @@ void recieve(IOSocketStream& socketStream)
 		httpDelete(socketStream, request);
 		break;
 	}
+	socketStream.sendNow();
 
 	if (!socketStream.isGood())
 		printf("server::recieve: socketStream error\n");
@@ -339,25 +340,23 @@ void httpGet(IOSocketStream& socketStream, HttpRequest& request)
 		respond.send(socketStream);
 		file.close();
 	}
-
-	socketStream.sendNow();
 }
 
 void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 {
 	const char* uri = request.getPath();
+	const size_t uriLenght = strlen(uri);
 
-	if (stringCompare((char*)uri, strlen(uri), "/api/setLightLevel", 18))
+	if (stringCompare((char*)uri, uriLenght, "/api/setLightLevel", 18))
 	{
 		char body[10] = "";
 		socketStream.read(body, sizeof(body));
 		setPWMDuty(atoi((const char*)body), 100);
 
 		sendOk(socketStream);
-		socketStream.sendNow();
 		return;
 	}
-	else if (stringCompare((char*)uri, strlen(uri), "/api/getLightLevel", 18))
+	else if (stringCompare((char*)uri, uriLenght, "/api/getLightLevel", 18))
 	{
 		HttpRespond respond;
 		{
@@ -372,9 +371,8 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 		respond.setBodyLenght(bodyLenght);
 
 		respond.send(socketStream);
-		socketStream.sendNow();
 	}
-	else if (stringCompare((char*)uri, strlen(uri), "/api/getTemperature", 19))
+	else if (stringCompare((char*)uri, uriLenght, "/api/getTemperature", 19))
 	{
 		float temp = getTemperature();
 		HttpRespond respond;
@@ -400,9 +398,8 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 		}
 
 		respond.send(socketStream);
-		socketStream.sendNow();
 	}
-	else if (stringCompare((char*)uri, strlen(uri), "/api/floor", 10))
+	else if (stringCompare((char*)uri, uriLenght, "/api/floor", 10))
 	{
 		size_t pathSize = sizeof(PerfixRoot) + request.getBodyLenght();
 		char* path = new char[pathSize];
@@ -410,11 +407,8 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 		socketStream.read(path + sizeof(PerfixRoot) - 1, pathSize - sizeof(PerfixRoot) + 1);
 		apiFloor(socketStream, path);
 		delete[] path;
-
-		socketStream.sendNow();
-		return;
 	}
-	else if (stringCompare((char*)uri, strlen(uri), "/api/getSpace", 13))
+	else if (stringCompare((char*)uri, uriLenght, "/api/getSpace", 13))
 	{
 		uint64_t free = 0;
 		uint64_t totol = 0;
@@ -431,9 +425,8 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 		respond.setBodyLenght(count);
 
 		respond.send(socketStream);
-		socketStream.sendNow();
 	}
-	else if (stringCompare((char*)uri, strlen(uri), "/api/serverOff", 14))
+	else if (stringCompare((char*)uri, uriLenght, "/api/serverOff", 14))
 	{
 		sendOk(socketStream);
 		socketStream.sendNow();
@@ -446,9 +439,8 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 		vTaskDelay(1000 / portTICK_PERIOD_MS);
 		startTemperature();
 	}
-	else if (stringCompare((char*)uri, strlen(uri), "/api/apStart", 12))
+	else if (stringCompare((char*)uri, uriLenght, "/api/apStart", 12))
 	{
-		sendOk(socketStream);
 		if (!wifiApIsStarted()) wifiApStart();
 
 		if (request.bodyLenght != 0)
@@ -463,15 +455,15 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 		{
 			wifiApSet(APSSID, APPASSWORD);
 		}
-	}
-	else if (stringCompare((char*)uri, strlen(uri), "/api/apStop", 11))
-	{
 		sendOk(socketStream);
+	}
+	else if (stringCompare((char*)uri, uriLenght, "/api/apStop", 11))
+	{
 		if (wifiApIsStarted()) wifiApStop();
-	}
-	else if (stringCompare((char*)uri, strlen(uri), "/api/wifiStart", 14))
-	{
 		sendOk(socketStream);
+	}
+	else if (stringCompare((char*)uri, uriLenght, "/api/wifiStart", 14))
+	{
 		if (!wifiStationIsStarted()) wifiStationStart();
 
 		if (request.bodyLenght != 0)
@@ -486,13 +478,14 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 		{
 			wifiConnect(WIFISSID, WIFIPASSWORD);
 		}
-	}
-	else if (stringCompare((char*)uri, strlen(uri), "/api/wifiStop", 13))
-	{
 		sendOk(socketStream);
-		if (wifiStationIsStarted()) wifiStationStop();
 	}
-	else if (stringCompare((char*)uri, strlen(uri), "/api/formatFlash", 16))
+	else if (stringCompare((char*)uri, uriLenght, "/api/wifiStop", 13))
+	{
+		if (wifiStationIsStarted()) wifiStationStop();
+		sendOk(socketStream);
+	}
+	else if (stringCompare((char*)uri, uriLenght, "/api/formatFlash", 16))
 	{
 		HttpRespond respond;
 		{
@@ -520,7 +513,6 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 		}
 
 		respond.send(socketStream);
-		socketStream.sendNow();
 	}
 	else
 	{
@@ -536,8 +528,6 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 		respond.setBody((void*)HttpReason::BadRequest);
 		respond.setBodyLenght(sizeof(HttpReason::BadRequest) - 1);
 		respond.send(socketStream);
-
-		socketStream.sendNow();
 		return;
 	}
 }
@@ -554,8 +544,6 @@ void httpPut(IOSocketStream& socketStream, HttpRequest& request)
 		newFloor(path);
 		tree(PerfixRoot); //[debug]
 		sendOk(socketStream);
-		socketStream.sendNow();
-		return;
 	}
 	else
 	{
@@ -616,7 +604,6 @@ void httpPut(IOSocketStream& socketStream, HttpRequest& request)
 #endif
 
 		sendOk(socketStream);
-		socketStream.sendNow();
 	}
 }
 
