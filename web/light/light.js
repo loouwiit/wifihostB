@@ -49,17 +49,10 @@ function lightLevelGet() {
 	request.send("");
 }
 
-function serverOff() {
-	var request = new XMLHttpRequest();
-	request.open("POST", "/api/serverOff");
-	request.send("");
-}
-
 lightLevelRangeElement.addEventListener("input", lightLevelChanged);
 lightLevelRangeElement.addEventListener("change", lightLevelChangedForce);
 document.getElementById("lightLevelMore").addEventListener("click", lightLevelAdd);
 document.getElementById("lightLevelLess").addEventListener("click", lightLevelSub);
 document.getElementById("lightLevelGet").addEventListener("click", lightLevelGet);
-document.getElementById("serverOff").addEventListener("click", serverOff);
 console.log("\"light.js\" loaded");
 lightLevelGet();
