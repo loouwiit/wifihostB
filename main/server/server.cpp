@@ -428,65 +428,6 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 
 		respond.send(socketStream);
 	}
-	else if (stringCompare((char*)uri, uriLenght, "/api/serverOff", 14))
-	{
-		sendOk(socketStream);
-		socketStream.sendNow();
-		vTaskDelay(100 / portTICK_PERIOD_MS);
-		socketStream.close();
-
-		stopTemperature();
-		wifiStop();
-		serverRunning = false;
-		vTaskDelay(1000 / portTICK_PERIOD_MS);
-		startTemperature();
-	}
-	else if (stringCompare((char*)uri, uriLenght, "/api/apStart", 12))
-	{
-		if (!wifiApIsStarted()) wifiApStart();
-
-		if (request.bodyLenght != 0)
-		{
-			char ssid[33];
-			char password[64];
-			socketStream.getline(ssid, sizeof(ssid));
-			socketStream.getline(password, sizeof(password));
-			wifiApSet(ssid, password);
-		}
-		else
-		{
-			wifiApSet(APSSID, APPASSWORD);
-		}
-		sendOk(socketStream);
-	}
-	else if (stringCompare((char*)uri, uriLenght, "/api/apStop", 11))
-	{
-		if (wifiApIsStarted()) wifiApStop();
-		sendOk(socketStream);
-	}
-	else if (stringCompare((char*)uri, uriLenght, "/api/wifiStart", 14))
-	{
-		if (!wifiStationIsStarted()) wifiStationStart();
-
-		if (request.bodyLenght != 0)
-		{
-			char ssid[33];
-			char password[64];
-			socketStream.getline(ssid, sizeof(ssid));
-			socketStream.getline(password, sizeof(password));
-			wifiConnect(ssid, password);
-		}
-		else
-		{
-			wifiConnect(WIFISSID, WIFIPASSWORD);
-		}
-		sendOk(socketStream);
-	}
-	else if (stringCompare((char*)uri, uriLenght, "/api/wifiStop", 13))
-	{
-		if (wifiStationIsStarted()) wifiStationStop();
-		sendOk(socketStream);
-	}
 	else if (stringCompare((char*)uri, uriLenght, "/api/wifiScan", 13))
 	{
 		// 扫描
@@ -522,6 +463,65 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 
 		delete[] wifi;
 		wifi = nullptr;
+	}
+	else if (stringCompare((char*)uri, uriLenght, "/api/wifiStart", 14))
+	{
+		if (!wifiStationIsStarted()) wifiStationStart();
+
+		if (request.bodyLenght != 0)
+		{
+			char ssid[33];
+			char password[64];
+			socketStream.getline(ssid, sizeof(ssid));
+			socketStream.getline(password, sizeof(password));
+			wifiConnect(ssid, password);
+		}
+		else
+		{
+			wifiConnect(WIFISSID, WIFIPASSWORD);
+		}
+		sendOk(socketStream);
+	}
+	else if (stringCompare((char*)uri, uriLenght, "/api/wifiStop", 13))
+	{
+		if (wifiStationIsStarted()) wifiStationStop();
+		sendOk(socketStream);
+	}
+	else if (stringCompare((char*)uri, uriLenght, "/api/apStart", 12))
+	{
+		if (!wifiApIsStarted()) wifiApStart();
+
+		if (request.bodyLenght != 0)
+		{
+			char ssid[33];
+			char password[64];
+			socketStream.getline(ssid, sizeof(ssid));
+			socketStream.getline(password, sizeof(password));
+			wifiApSet(ssid, password);
+		}
+		else
+		{
+			wifiApSet(APSSID, APPASSWORD);
+		}
+		sendOk(socketStream);
+	}
+	else if (stringCompare((char*)uri, uriLenght, "/api/apStop", 11))
+	{
+		if (wifiApIsStarted()) wifiApStop();
+		sendOk(socketStream);
+	}
+	else if (stringCompare((char*)uri, uriLenght, "/api/serverOff", 14))
+	{
+		sendOk(socketStream);
+		socketStream.sendNow();
+		vTaskDelay(100 / portTICK_PERIOD_MS);
+		socketStream.close();
+
+		stopTemperature();
+		wifiStop();
+		serverRunning = false;
+		vTaskDelay(1000 / portTICK_PERIOD_MS);
+		startTemperature();
 	}
 	else if (stringCompare((char*)uri, uriLenght, "/api/formatFlash", 16))
 	{
