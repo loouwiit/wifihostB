@@ -513,7 +513,7 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 		// 发送数据
 		HttpRespond respond;
 		respond.setBody(body);
-		respond.setBodyLenght(bodyLenght);
+		respond.setBodyLenght(pointer);
 		respond.send(socketStream);
 
 		// 清理内存
