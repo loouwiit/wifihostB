@@ -32,6 +32,8 @@ constexpr size_t PutBufferSize = 512;
 constexpr size_t socketStreamWindowNumber = 16;
 constexpr size_t coworkerNumber = 5; //极限测试中刚刚跑不满的数量
 
+constexpr size_t wifiApRecordSize = 50;
+
 bool serverRunning = false;
 SocketStreamWindow socketStreamWindows[socketStreamWindowNumber];
 
@@ -484,6 +486,42 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 	{
 		if (wifiStationIsStarted()) wifiStationStop();
 		sendOk(socketStream);
+	}
+	else if (stringCompare((char*)uri, uriLenght, "/api/wifiScan", 13))
+	{
+		// 扫描
+		wifi_ap_record_t* wifi = new wifi_ap_record_t[wifiApRecordSize]; // 96 bytes per record
+		size_t count = wifiStationScan(wifi, wifiApRecordSize);
+
+		// 统计长度
+		// unsigned char wifiRssiLenght[wifiApRecordSize] = {0};
+		// rssi假定为3位，“-85”
+		size_t bodyLenght = 0;
+		for (size_t i = 0;i < count;i++)
+		{
+			bodyLenght += strlen((char*)wifi[i].ssid) + 5;//rssi的3位，':'的1位，'\n'的1位
+		}
+
+		// 构建body
+		char* body = new char[bodyLenght + 1];
+		size_t pointer = 0;
+		for (size_t i = 0;i < count;i++)
+		{
+			pointer += sprintf(body + pointer, "%d:%s\n", (int)wifi[i].rssi, (char*)wifi[i].ssid);
+		}
+
+		// 发送数据
+		HttpRespond respond;
+		respond.setBody(body);
+		respond.setBodyLenght(bodyLenght);
+		respond.send(socketStream);
+
+		// 清理内存
+		delete[] body;
+		body = nullptr;
+
+		delete[] wifi;
+		wifi = nullptr;
 	}
 	else if (stringCompare((char*)uri, uriLenght, "/api/formatFlash", 16))
 	{
