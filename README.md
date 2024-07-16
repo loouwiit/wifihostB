@@ -45,7 +45,7 @@ constexpr char APPASSWORD[64] = "12345678";
 碎碎念：记得加限流电阻，3.3v直连LED有可能将其烧毁！  
 
 ### 按钮——IO0
-[./main/main.cpp](main/main.cpp)中有`void setIo0();`，可自定义。在本项目中，IO0用于启动并连接wifi、启动服务端。
+[./main/main.cpp](main/main.cpp)中有`void setIo0();`，可自定义。在本项目中，IO0用于无网络下启动Ap并启动服务端。
 
 ### 分区表
 文件位置: [./partitions.csv](partitions.csv)  
@@ -150,10 +150,25 @@ Mem文件系统中的最大限制：[./main/mem.hpp](main/mem.hpp)中的`MemFile
 * * `/api/getSpaece`  
     获取Fat文件系统的空间信息。  
     响应的body为空间信息，两个数字由“,”分割，前一个为可用空间，后一个为总空间。
+* * `/api/wifiScan`  
+    扫描wifi  
+    响应的body为扫描到的wifi，每行一个wifi。“:”前为wifi的rssi，后为wifi的SSID
+* * `/api/wifiStart`  
+    启动wifi  
+    请求的body可为空，连接编译时指定的wifi  
+    请求body第一行为wifi的SSID，第二行为wifi的密码
+* * `/api/wifiStop`  
+    关闭wifi
+* * `/api/apStart`  
+    启动AP  
+    请求的body可为空，连接编译时指定的Ap  
+    请求body第一行为Ap的SSID，第二行为Ap的密码
+* * `/api/apStop`  
+    关闭Ap
 * * `/api/serverOff`  
     关闭wifi、服务器功能  
     再次开启请使用IO0按钮（见上文）
-* * `/api/formatFlash`
+* * `/api/formatFlash`  
     请求的body为格式化密码（设置见上文）  
     响应的body为格式化情况
 
