@@ -9,14 +9,17 @@
 </head>
 
 <body>
+	<input type="range" id="lightChannelSelect" min="0" max="7" value="0" />
+	<br />
+	<label for="lightChannelSelect" id="lightChannelLabel">通道:</label>
+	<br />
 	<input type="range" id="lightLevelRange" min="0" max="1024" value="0" />
 	<br />
-	<label for="lightLevel" id="lightLevelLabel">光亮等级:</label>
+	<label for="lightLevelRange" id="lightLevelLabel">等级:</label>
 	<br />
-
-	<button id="lightLevelLess">暗</button>
-	<button id="lightLevelMore">亮</button>
-	<button id="lightLevelGet">获取亮度</button>
+	
+	<button id="lightLevelSet">设置</button>
+	<button id="lightLevelGet">获取</button>
 </body>
 
 <script src="light.js" defer></script>

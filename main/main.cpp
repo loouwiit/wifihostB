@@ -26,8 +26,12 @@ void ioPressed(void* arg);
 
 void app_main()
 {
-	startPWM((gpio_num_t)1);
-	setPWMDuty(128, 500);
+	initPWM();
+	startPWM(ledc_channel_t::LEDC_CHANNEL_0, gpio_num_t::GPIO_NUM_1);
+	startPWM(ledc_channel_t::LEDC_CHANNEL_1, gpio_num_t::GPIO_NUM_2);
+	setPWMDuty(ledc_channel_t::LEDC_CHANNEL_0, 0, 1);
+	setPWMDuty(ledc_channel_t::LEDC_CHANNEL_1, 128, 500);
+
 
 	setIo0();
 	mountFlash();
@@ -70,7 +74,7 @@ void app_main()
 
 	printf("started\n");
 
-	setPWMDuty(1024, 500);
+	setPWMDuty(ledc_channel_t::LEDC_CHANNEL_1, 1024, 500);
 
 #if false
 	while (1)

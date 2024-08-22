@@ -351,15 +351,21 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 
 	if (stringCompare((char*)uri, uriLenght, "/api/setLightLevel", 18))
 	{
-		char body[10] = "";
-		socketStream.read(body, sizeof(body));
-		setPWMDuty(atoi((const char*)body), 100);
+		char channel[10] = "";
+		char duty[10] = "";
+		socketStream.getline(channel, sizeof(channel));
+		socketStream.getline(duty, sizeof(duty));
+
+		setPWMDuty((ledc_channel_t)atoi((const char*)channel), atoi((const char*)duty), 100);
 
 		sendOk(socketStream);
 		return;
 	}
 	else if (stringCompare((char*)uri, uriLenght, "/api/getLightLevel", 18))
 	{
+		char channel[10] = "";
+		socketStream.getline(channel, sizeof(channel));
+
 		HttpRespond respond;
 		{
 			respond.cookies.clear();
@@ -368,7 +374,7 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 			respond.heads.add({ "Content-Type", " text/plain; charset=utf-8" });
 		}
 		char string[35] = "";
-		size_t bodyLenght = sprintf(string, "%ld", getPWMDuty());
+		size_t bodyLenght = sprintf(string, "%ld", getPWMDuty((ledc_channel_t)atoi(channel)));
 		respond.setBody(string);
 		respond.setBodyLenght(bodyLenght);
 

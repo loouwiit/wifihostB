@@ -11,12 +11,9 @@
 #define LEDC_LS_MODE           LEDC_LOW_SPEED_MODE
 
 constexpr long LEDC_Freq = 50000;
-#define LEDC_LS_CH0_CHANNEL    LEDC_CHANNEL_0
 
-ledc_channel_config_t ledc_channel{};
-SemaphoreHandle_t counting_sem = 0;
-
-static long duty = 0;
+ledc_channel_config_t ledc_channel[ledc_channel_t::LEDC_CHANNEL_MAX]{ {} }; //好像没啥用，之后再优化吧
+SemaphoreHandle_t counting_sem[ledc_channel_t::LEDC_CHANNEL_MAX] = { 0 };
 
 static IRAM_ATTR bool cb_ledc_fade_end_event(const ledc_cb_param_t* param, void* user_arg)
 {
@@ -30,8 +27,9 @@ static IRAM_ATTR bool cb_ledc_fade_end_event(const ledc_cb_param_t* param, void*
 	return (taskAwoken == pdTRUE);
 }
 
-void startPWM(gpio_num_t gpio)
+void initPWM()
 {
+	printf("init PWM\n");
 	/*
 	 * Prepare and set configuration of timers
 	 * that will be used by LED Controller
@@ -44,6 +42,14 @@ void startPWM(gpio_num_t gpio)
 	ledc_timer.clk_cfg = LEDC_AUTO_CLK;             // Auto select the source clock
 	// Set configuration of timer0 for high speed channels
 	ledc_timer_config(&ledc_timer);
+
+	// Initialize fade service.
+	ledc_fade_func_install(0);
+}
+
+void startPWM(ledc_channel_t channel, gpio_num_t gpio)
+{
+	printf("LEDC %d set to GPIO %d\n", channel, gpio);
 	/*
 	 * Prepare individual configuration
 	 * for each channel of LED Controller
@@ -58,40 +64,38 @@ void startPWM(gpio_num_t gpio)
 	 *         will be the same
 	 */
 
-	ledc_channel.channel = LEDC_LS_CH0_CHANNEL;
-	ledc_channel.duty = 0;
-	ledc_channel.gpio_num = gpio;
-	ledc_channel.speed_mode = LEDC_LS_MODE;
-	ledc_channel.hpoint = 0;
-	ledc_channel.timer_sel = LEDC_LS_TIMER;
-	ledc_channel.flags.output_invert = 0;
+	ledc_channel[channel].channel = channel;
+	ledc_channel[channel].duty = 0;
+	ledc_channel[channel].gpio_num = gpio;
+	ledc_channel[channel].speed_mode = LEDC_LS_MODE;
+	ledc_channel[channel].hpoint = 0;
+	ledc_channel[channel].timer_sel = LEDC_LS_TIMER;
+	ledc_channel[channel].flags.output_invert = 0;
 
 	// Set LED Controller with previously prepared configuration
-	ledc_channel_config(&ledc_channel);
+	ledc_channel_config(&ledc_channel[channel]);
 
 	// Initialize fade service.
-	ledc_fade_func_install(0);
 	ledc_cbs_t callbacks = {
 		.fade_cb = cb_ledc_fade_end_event
 	};
-	counting_sem = xSemaphoreCreateCounting(gpio, 0);
+	counting_sem[channel] = xSemaphoreCreateCounting(gpio, 0);
 
-	ledc_cb_register(ledc_channel.speed_mode, ledc_channel.channel, &callbacks, (void*)counting_sem);
+	ledc_cb_register(ledc_channel[channel].speed_mode, ledc_channel[channel].channel, &callbacks, (void*)counting_sem[channel]);
 }
 
-void setPWMDuty(uint32_t duty, uint32_t time)
+void setPWMDuty(ledc_channel_t channel, uint32_t duty, uint32_t time)
 {
-	printf("LEDC fade up to duty %ld\n", duty);
-	::duty = duty;
-	ledc_set_fade_with_time(ledc_channel.speed_mode,
-		ledc_channel.channel, duty, time);
-	ledc_fade_start(ledc_channel.speed_mode,
-		ledc_channel.channel, LEDC_FADE_NO_WAIT);
+	printf("LEDC %d (GPIO %d) fade up to duty %ld\n", channel, ledc_channel[channel].gpio_num, duty);
+	ledc_set_fade_with_time(ledc_channel[channel].speed_mode,
+		ledc_channel[channel].channel, duty, time);
+	ledc_fade_start(ledc_channel[channel].speed_mode,
+		ledc_channel[channel].channel, LEDC_FADE_NO_WAIT);
 
-	xSemaphoreTake(counting_sem, portMAX_DELAY);
+	xSemaphoreTake(counting_sem[channel], portMAX_DELAY);
 }
 
-long getPWMDuty()
+long getPWMDuty(ledc_channel_t channel)
 {
-	return duty;
+	return ledc_get_duty(ledc_channel[channel].speed_mode, channel);
 }

@@ -1,58 +1,45 @@
-let lightLevelRangeElement = document.getElementById("lightLevelRange");
-let lightLevelLabelElement = document.getElementById("lightLevelLabel");
-let lightLevelNextUpdateTime = 0;
-const lightLevelUpdateTime = 200;
+let lightChannelElement = document.getElementById("lightChannelSelect");
+let lightChannelLabelElement = document.getElementById("lightChannelLabel");
 
-function sendLightLevel(lightLevel) {
+let lightLevelElement = document.getElementById("lightLevelRange");
+let lightLevelLabelElement = document.getElementById("lightLevelLabel");
+
+function sendLightLevel(lightChannel, lightLevel) {
 	var request = new XMLHttpRequest();
 	request.open("POST", "/api/setLightLevel");
-	request.send(lightLevel.toString());
+	request.send(lightChannel.toString() + '\n' + lightLevel.toString());
 }
 
-function lightLevelChangedForce() {
-	lightLevelLabelElement.innerHTML = "光亮等级:" + lightLevelRangeElement.valueAsNumber;
-
-	sendLightLevel(lightLevelRangeElement.valueAsNumber);
+function lightChannelChanged() {
+	lightChannelLabelElement.innerHTML = "通道:" + lightChannelElement.valueAsNumber;
+	lightLevelLabelElement.innerHTML = "等级:";
+	lightLevelGet();
 }
 
 function lightLevelChanged() {
-	lightLevelLabelElement.innerHTML = "光亮等级:" + lightLevelRangeElement.valueAsNumber;
+	lightLevelLabelElement.innerHTML = "等级:" + lightLevelElement.valueAsNumber;
+}
 
-	var date = new Date();
-	if (date.getTime() > lightLevelNextUpdateTime) {
-		lightLevelNextUpdateTime = date.getTime() + lightLevelUpdateTime;
-		sendLightLevel(lightLevelRangeElement.valueAsNumber);
-	}
+function lightLevelSet() {
+	sendLightLevel(lightChannelElement.valueAsNumber, lightLevelElement.valueAsNumber);
 }
 
 function getLevelCallback(level) {
-	var date = new Date();
-	lightLevelNextUpdateTime = date.getTime() + lightLevelUpdateTime; //防止更新
-	lightLevelRangeElement.valueAsNumber = level;
-	lightLevelLabelElement.innerHTML = "光亮等级:" + level.toString();
-}
-
-function lightLevelAdd() {
-	lightLevelRangeElement.valueAsNumber += 1;
-	lightLevelChangedForce();
-}
-
-function lightLevelSub() {
-	lightLevelRangeElement.valueAsNumber -= 1;
-	lightLevelChangedForce();
+	lightLevelElement.valueAsNumber = level;
+	lightLevelLabelElement.innerHTML = "等级:" + lightLevelElement.valueAsNumber;
 }
 
 function lightLevelGet() {
 	var request = new XMLHttpRequest();
 	request.open("POST", "/api/getLightLevel");
 	request.onload = function () { getLevelCallback(parseInt(this.responseText)); };
-	request.send("");
+	request.send(lightChannelElement.valueAsNumber.toString());
 }
 
-lightLevelRangeElement.addEventListener("input", lightLevelChanged);
-lightLevelRangeElement.addEventListener("change", lightLevelChangedForce);
-document.getElementById("lightLevelMore").addEventListener("click", lightLevelAdd);
-document.getElementById("lightLevelLess").addEventListener("click", lightLevelSub);
+lightChannelElement.addEventListener("input", lightChannelChanged);
+lightLevelElement.addEventListener("input", lightLevelChanged);
+lightLevelElement.addEventListener("change", lightLevelSet);
+document.getElementById("lightLevelSet").addEventListener("click", lightLevelSet);
 document.getElementById("lightLevelGet").addEventListener("click", lightLevelGet);
 console.log("\"light.js\" loaded");
-lightLevelGet();
+lightChannelChanged();
