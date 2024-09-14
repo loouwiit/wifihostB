@@ -28,7 +28,7 @@ void app_main()
 {
 	initPWM();
 	startPWM(ledc_channel_t::LEDC_CHANNEL_0, gpio_num_t::GPIO_NUM_1);
-	startPWM(ledc_channel_t::LEDC_CHANNEL_1, gpio_num_t::GPIO_NUM_2);
+	startPWM(ledc_channel_t::LEDC_CHANNEL_1, gpio_num_t::GPIO_NUM_44);
 	setPWMDuty(ledc_channel_t::LEDC_CHANNEL_0, 0, 1);
 	setPWMDuty(ledc_channel_t::LEDC_CHANNEL_1, 128, 500);
 
