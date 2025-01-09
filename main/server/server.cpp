@@ -526,7 +526,7 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 		}
 		else
 		{
-			wifiApSet(APSSID, APPASSWORD);
+			wifiApSet(APSSID, APPASSWORD, APAUTHENTICATEMODE);
 		}
 		sendOk(socketStream);
 	}
