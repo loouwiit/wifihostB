@@ -9,6 +9,7 @@
 #include <esp_event.h>
 #include "tempture.hpp"
 #include "pwm.hpp"
+#include "nvs.hpp"
 #include "wifi.hpp"
 #include "wifi.inl" //WIFISSID & WIFIPASSWORD & APSSID & APPASSWORD
 #include "fat.hpp"
@@ -38,7 +39,9 @@ void app_main()
 	mountMem();
 	tree(PerfixRoot); //[debug]
 
+	nvsInit();
 	wifiInit();
+	wifiNatSetAutoStart(true);
 	wifiStart();
 
 	{

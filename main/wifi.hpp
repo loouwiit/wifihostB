@@ -1,9 +1,5 @@
 #include <esp_wifi_types_generic.h>
 
-/*
-* 先start，后操作
-*/
-
 void wifiInit();
 void wifiDeinit();
 
@@ -25,3 +21,10 @@ bool wifiApIsStarted();
 void wifiApStart();
 void wifiApSet(const char* ssid, const char* password, wifi_auth_mode_t authMode = wifi_auth_mode_t::WIFI_AUTH_WPA2_WPA3_PSK);
 void wifiApStop();
+
+void wifiNatSetAutoStart(bool flag = true);
+bool wifiNatIsAutoStart();
+
+bool wifiNatIsStarted();
+void wifiNatStart();
+void wifiNatStop();

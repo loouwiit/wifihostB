@@ -1,16 +1,20 @@
 #include <cstring>
 
-#include <nvs_flash.h>
 #include <esp_log.h>
 #include <esp_mac.h>
 #include <esp_wifi.h>
 #include <esp_random.h>
 
-#include "wifi.hpp"
+#include "lwip/lwip_napt.h"
 
+#include "dhcpserver/dhcpserver.h"
+
+#include "wifi.hpp"
 
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT BIT1
+
+const uint32_t defaultNatIp = esp_ip4addr_aton("192.168.4.1");
 
 const char* TAG = "wifi";
 
@@ -22,10 +26,14 @@ bool wifiStationWantConnect = false;
 bool wifiStationConnected = false;
 bool wifiApStarted = false;
 
-esp_event_handler_instance_t instance_any_id;
-esp_event_handler_instance_t instance_got_ip;
+bool wifiNatAutoStart = false;
+bool wifiNatStarted = false;
+
+esp_netif_t* wifiAp;
+esp_netif_t* wifiSta;
 
 bool wifiStationSetConfig(const char* ssid, const char* password);
+bool wifiNatAutoStartDetecte();
 
 void event_handler(void* arg, esp_event_base_t eventBase, int32_t eventId, void* eventData)
 {
@@ -93,40 +101,26 @@ void event_handler(void* arg, esp_event_base_t eventBase, int32_t eventId, void*
 			ESP_LOGI(TAG, "connect success");
 			ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
 			wifiStationConnected = true;
+			wifiNatAutoStartDetecte();
 		}
 	}
 }
 
-void initNVS()
-{
-	ESP_LOGI(TAG, "NVS init");
-	esp_err_t ret = nvs_flash_init();
-	if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
-	{
-		ESP_ERROR_CHECK(nvs_flash_erase());
-		ret = nvs_flash_init();
-	}
-	ESP_ERROR_CHECK(ret);
-	ESP_LOGI(TAG, "NVS inited");
-}
-
 void wifiInit()
 {
-	initNVS();
 	ESP_LOGI(TAG, "init");
-	ESP_ERROR_CHECK(esp_event_loop_create_default());
 
 	ESP_ERROR_CHECK(esp_netif_init());
 
-	esp_netif_create_default_wifi_sta();
-	esp_netif_create_default_wifi_ap();
+	wifiAp = esp_netif_create_default_wifi_sta();
+	wifiSta = esp_netif_create_default_wifi_ap();
 
 	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
 	ESP_ERROR_CHECK(esp_wifi_init(&cfg));
 
 	// 注册消息
-	ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT, WIFI_EVENT_STA_DISCONNECTED, &event_handler, NULL, &instance_any_id));
-	ESP_ERROR_CHECK(esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler, NULL, &instance_got_ip));
+	ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT, WIFI_EVENT_STA_DISCONNECTED, &event_handler, nullptr, nullptr));
+	ESP_ERROR_CHECK(esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler, nullptr, nullptr));
 
 	ESP_ERROR_CHECK(esp_wifi_set_mode(wifi_mode_t::WIFI_MODE_NULL));
 
@@ -136,6 +130,7 @@ void wifiInit()
 void wifiDeinit()
 {
 	esp_wifi_deinit();
+	esp_netif_deinit();
 }
 
 bool wifiStationSetConfig(const char* ssid, const char* password)
@@ -191,10 +186,9 @@ void wifiStart()
 	}
 	esp_wifi_start();
 	wifiStarted = true;
-	wifiStationStarted = false;
 	wifiStationWantConnect = false;
 	wifiStationConnected = false;
-	wifiApStarted = false;
+	wifiNatStarted = false;
 	ESP_LOGI(TAG, "started");
 }
 
@@ -207,12 +201,14 @@ void wifiStop()
 	}
 	if (wifiApStarted) wifiApStop();
 	if (wifiStationStarted) wifiStationStop();
+	if (wifiNatStarted) wifiNatStop();
 	esp_wifi_stop();
 	wifiStarted = false;
 	wifiStationStarted = false;
 	wifiStationWantConnect = false;
 	wifiStationConnected = false;
 	wifiApStarted = false;
+	wifiNatStarted = false;
 	ESP_LOGI(TAG, "stopped");
 }
 
@@ -223,11 +219,6 @@ bool wifiStationIsStarted()
 
 void wifiStationStart()
 {
-	if (!wifiStarted)
-	{
-		ESP_LOGE(TAG, "wifi don't start, can't start station");
-		return;
-	}
 	if (wifiStationStarted)
 	{
 		ESP_LOGW(TAG, "station has started, don't need start");
@@ -352,6 +343,7 @@ void wifiDisconnect()
 	}
 	wifiStationWantConnect = false;
 	wifiStationConnected = false; //貌似是冗余
+	wifiNatStarted = false;
 	esp_wifi_disconnect();
 }
 
@@ -362,17 +354,11 @@ bool wifiApIsStarted()
 
 void wifiApStart()
 {
-	if (!wifiStarted)
-	{
-		ESP_LOGE(TAG, "wifi don't start, can't start Ap");
-		return;
-	}
 	if (wifiApStarted)
 	{
 		ESP_LOGW(TAG, "Ap has started, don't need start");
 		return;
 	}
-	wifiApStarted = true;
 	wifi_mode_t mode;
 	esp_wifi_get_mode(&mode);
 	switch (mode)
@@ -387,17 +373,14 @@ void wifiApStart()
 		esp_wifi_set_mode(wifi_mode_t::WIFI_MODE_AP);
 		break;
 	}
+	wifiApStarted = true;
+	wifiNatAutoStartDetecte();
+
 	ESP_LOGI(TAG, "Ap started");
 }
 
 void wifiApSet(const char* ssid, const char* password, wifi_auth_mode_t authMode)
 {
-	if (!wifiApStarted)
-	{
-		ESP_LOGE(TAG, "Ap not started, counldn't set Ap");
-		return;
-	}
-
 	wifi_config_t config;
 	memset(&config, 0, sizeof(config));
 
@@ -409,6 +392,18 @@ void wifiApSet(const char* ssid, const char* password, wifi_auth_mode_t authMode
 	config.ap.pmf_cfg.required = true;
 
 	esp_wifi_set_config(WIFI_IF_AP, &config);
+
+
+	// DNS
+	// Enable DNS (offer) for dhcp server
+	esp_netif_dns_info_t dnsserver;
+	dhcps_offer_t dhcps_dns_value = OFFER_DNS;
+	esp_netif_dhcps_option(wifiAp, ESP_NETIF_OP_SET, ESP_NETIF_DOMAIN_NAME_SERVER, &dhcps_dns_value, sizeof(dhcps_dns_value));
+
+	// // Set custom dns server address for dhcp server
+	dnsserver.ip.u_addr.ip4.addr = esp_ip4addr_aton("8.8.8.8");
+	dnsserver.ip.type = ESP_IPADDR_TYPE_V4;
+	esp_netif_set_dns_info(wifiAp, ESP_NETIF_DNS_MAIN, &dnsserver);
 }
 
 void wifiApStop()
@@ -418,7 +413,6 @@ void wifiApStop()
 		ESP_LOGW(TAG, "Ap hasn't started, don't need stop");
 		return;
 	}
-	wifiApStarted = false;
 	wifi_mode_t mode;
 	esp_wifi_get_mode(&mode);
 	switch (mode)
@@ -432,5 +426,65 @@ void wifiApStop()
 		esp_wifi_set_mode(wifi_mode_t::WIFI_MODE_NULL);
 		break;
 	}
+	wifiApStarted = false;
+	wifiNatStarted = false;
 	ESP_LOGI(TAG, "Ap stopped");
+}
+
+void wifiNatSetAutoStart(bool flag)
+{
+	wifiNatAutoStart = flag;
+}
+
+bool wifiNatIsAutoStart()
+{
+	return wifiNatAutoStart;
+}
+
+bool wifiNatIsStarted()
+{
+	return wifiNatStarted;
+}
+
+void wifiNatStart()
+{
+	if (wifiNatStarted)
+	{
+		ESP_LOGW(TAG, "nat has started, don't need start");
+		return;
+	}
+	if (!wifiStationConnected)
+	{
+		ESP_LOGW(TAG, "wifi don't connected, can't start nat");
+		return;
+	}
+
+	ESP_LOGI(TAG, "enable nat");
+	ip_napt_enable(defaultNatIp, 1);
+	wifiNatStarted = true;
+}
+
+void wifiNatStop()
+{
+	if (wifiNatStarted)
+	{
+		ESP_LOGW(TAG, "nat has started, don't need stop");
+		return;
+	}
+
+	ESP_LOGI(TAG, "disable nat");
+	ip_napt_enable(defaultNatIp, 0);
+	wifiNatStarted = false;
+}
+
+bool wifiNatAutoStartDetecte()
+{
+	if (wifiNatAutoStart && wifiStationConnected && wifiApStarted && !wifiNatStarted)
+	{
+		ESP_LOGI(TAG, "nat auto start");
+		wifiNatStart();
+		return true;
+	}
+
+	return false;
 }
