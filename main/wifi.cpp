@@ -112,8 +112,8 @@ void wifiInit()
 
 	ESP_ERROR_CHECK(esp_netif_init());
 
-	wifiAp = esp_netif_create_default_wifi_sta();
-	wifiSta = esp_netif_create_default_wifi_ap();
+	wifiSta = esp_netif_create_default_wifi_sta();
+	wifiAp = esp_netif_create_default_wifi_ap();
 
 	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
 	ESP_ERROR_CHECK(esp_wifi_init(&cfg));

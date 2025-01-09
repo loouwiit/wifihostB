@@ -39,6 +39,7 @@ void app_main()
 	mountMem();
 	tree(PerfixRoot); //[debug]
 
+	ESP_ERROR_CHECK(esp_event_loop_create_default());
 	nvsInit();
 	wifiInit();
 	wifiNatSetAutoStart(true);
