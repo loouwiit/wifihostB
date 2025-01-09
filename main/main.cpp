@@ -63,8 +63,8 @@ void app_main()
 			wifiStationStop();
 
 			//启动AP
-			wifiApStart();
 			wifiApSet(APSSID, APPASSWORD, APAUTHENTICATEMODE);
+			wifiApStart();
 		}
 	}
 
@@ -137,8 +137,8 @@ void ioPressed(void* arg)
 				if (!wifiIsStarted()) wifiStart();
 				if (!wifiApIsStarted())
 				{
-					wifiApStart();
 					wifiApSet(APSSID, APPASSWORD, APAUTHENTICATEMODE);
+					wifiApStart();
 				}
 				startTemperature();
 			}

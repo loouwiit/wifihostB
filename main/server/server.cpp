@@ -522,7 +522,7 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 			char password[64];
 			socketStream.getline(ssid, sizeof(ssid));
 			socketStream.getline(password, sizeof(password));
-			wifiApSet(ssid, password);
+			wifiApSet(ssid, password, APAUTHENTICATEMODE);
 		}
 		else
 		{
