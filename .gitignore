@@ -3,3 +3,5 @@ wifi.inl
 debug.log
 managed_components/
 futher/
+CMakeCache.txt
+CMakeFiles/
