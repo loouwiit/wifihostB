@@ -23,6 +23,8 @@
 static uint8_t autoRestartTimes = 0;
 static uint8_t maxRestartTimes = 0;
 
+constexpr char TAG[] = "server";
+
 constexpr char ServerPath[] = "/server";
 constexpr char MDnsName[] = "esp32s3";
 constexpr char formatingPassword[] = "I know exactly what I'm doing";
@@ -134,6 +136,23 @@ void server(void*)
 		}
 
 		printf("server: socket accepted ip address: %s\n", addr_str);
+
+		if (!(addr_str[0] == '1'
+			&& addr_str[1] == '9'
+			&& addr_str[2] == '2'
+			&& addr_str[3] == '.'
+			&& addr_str[4] == '1'
+			&& addr_str[5] == '6'
+			&& addr_str[6] == '8'
+			&& addr_str[7] == '.'
+			&& addr_str[8] == '4'
+			&& addr_str[9] == '.'))
+		{
+			ISocketStream t{ sock };
+			t.close();
+			ESP_LOGI(TAG, "abandoned");
+			continue;
+		}
 
 		size_t index = 0;
 		while (!socketStreamWindows[index].setSocket(sock))

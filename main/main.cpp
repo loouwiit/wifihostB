@@ -131,12 +131,10 @@ void ioPressed(void* arg)
 		{
 			printf("GPIO[%lu] intr, val: %d\n", io_num, gpio_get_level((gpio_num_t)io_num));
 
-			if (!wifiIsConnect())
+			if (!wifiApIsStarted())
 			{
-				// 没有wifi连接->启动Ap
 				stopTemperature();
 				if (!wifiIsStarted()) wifiStart();
-				if (wifiStationIsStarted()) wifiStationStop();
 				if (!wifiApIsStarted())
 				{
 					wifiApStart();
