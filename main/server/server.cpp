@@ -509,8 +509,9 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 	}
 	else if (stringCompare((char*)uri, uriLenght, "/api/wifiStop", 13))
 	{
-		if (wifiStationIsStarted()) wifiStationStop();
 		sendOk(socketStream);
+		socketStream.sendNow();
+		if (wifiStationIsStarted()) wifiStationStop();
 	}
 	else if (stringCompare((char*)uri, uriLenght, "/api/apStart", 12))
 	{
@@ -532,8 +533,9 @@ void httpPost(IOSocketStream& socketStream, HttpRequest& request)
 	}
 	else if (stringCompare((char*)uri, uriLenght, "/api/apStop", 11))
 	{
-		if (wifiApIsStarted()) wifiApStop();
+		socketStream.sendNow();
 		sendOk(socketStream);
+		if (wifiApIsStarted()) wifiApStop();
 	}
 	else if (stringCompare((char*)uri, uriLenght, "/api/serverOff", 14))
 	{
