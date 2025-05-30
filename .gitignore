@@ -5,3 +5,4 @@ managed_components/
 futher/
 CMakeCache.txt
 CMakeFiles/
+esp-idf/
