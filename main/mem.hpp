@@ -16,5 +16,5 @@ constexpr size_t MaxMemFileDescriptionCount = 16;
 constexpr size_t MemFileBlockTotolSize = 512;
 constexpr size_t MemFileMaxSize = 1024 * 1024; // 1MB
 
-void mountMem();
+bool mountMem();
 // void testMem();

@@ -4,6 +4,7 @@
 #include "stringCompare.hpp"
 #include "nonCopyAble.hpp"
 #include "mem.hpp"
+#include "fat.hpp"
 
 #define MemDebug true
 #define MemUsageDebug true
@@ -677,8 +678,8 @@ bool MemFloorHead::makeChildFile(const char* fileName, size_t fileNameLenght)
 	// file -> new file
 	// ^
 #if MemDebug && MemUsageDebug
-		memTotolUsage += sizeof(MemFileHead);
-		printf("mem: totol memory usage = %u at %d\n", memTotolUsage, __LINE__);
+	memTotolUsage += sizeof(MemFileHead);
+	printf("mem: totol memory usage = %u at %d\n", memTotolUsage, __LINE__);
 #endif
 	file->next = new MemFileHead;
 	file->next->last = file;
@@ -735,7 +736,7 @@ bool MemFloorHead::makeFile(const char* path, size_t pathLenght)
 
 // vfs file函数
 
-void mountMem()
+bool mountMem()
 {
 #if MemDebug && MemProcessDebug
 	printf("mount Mem\n");
@@ -759,7 +760,14 @@ void mountMem()
 	memFs.seekdir = memSeekDir;
 	memFs.closedir = memCloseDir;
 
+	if (!testFloor(PerfixMem))
+	{
+		ESP_LOGW("mem", "%s is not exsit, can't mount mem", PerfixMem);
+		return false;
+	}
 	ESP_ERROR_CHECK(esp_vfs_register(PerfixMem, &memFs, NULL));
+	
+	return true;
 }
 
 // void testMem()
