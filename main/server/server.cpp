@@ -138,22 +138,24 @@ void server(void*)
 		printf("server: socket accepted ip address: %s\n", addr_str);
 
 		// 对访问网段进行限制
-		// if (!(addr_str[0] == '1'
-		// 	&& addr_str[1] == '9'
-		// 	&& addr_str[2] == '2'
-		// 	&& addr_str[3] == '.'
-		// 	&& addr_str[4] == '1'
-		// 	&& addr_str[5] == '6'
-		// 	&& addr_str[6] == '8'
-		// 	&& addr_str[7] == '.'
-		// 	&& addr_str[8] == '4'
-		// 	&& addr_str[9] == '.'))
-		// {
-		// 	ISocketStream t{ sock };
-		// 	t.close();
-		// 	ESP_LOGI(TAG, "abandoned");
-		// 	continue;
-		// }
+#if NetworkSegmentRestriction
+		if (!(addr_str[0] == '1'
+			&& addr_str[1] == '9'
+			&& addr_str[2] == '2'
+			&& addr_str[3] == '.'
+			&& addr_str[4] == '1'
+			&& addr_str[5] == '6'
+			&& addr_str[6] == '8'
+			&& addr_str[7] == '.'
+			&& addr_str[8] == '4'
+			&& addr_str[9] == '.'))
+		{
+			ISocketStream t{ sock };
+			t.close();
+			ESP_LOGI(TAG, "abandoned");
+			continue;
+		}
+#endif
 
 		size_t index = 0;
 		while (!socketStreamWindows[index].setSocket(sock))
