@@ -44,7 +44,8 @@ void app_main()
 	wifiInit();
 	wifiNatSetAutoStart(true);
 	wifiStart();
-
+	wifiApStart();
+	
 	{
 		//Station模式连接wifi
 		wifiStationStart();
@@ -130,6 +131,15 @@ void ioPressed(void* arg)
 		if (xQueueReceive(gpio_evt_queue, &io_num, portMAX_DELAY))
 		{
 			printf("GPIO[%lu] intr, val: %d\n", io_num, gpio_get_level((gpio_num_t)io_num));
+
+			if (!wifiIsConnect() || !wifiIsStarted())
+			{
+				stopTemperature();
+				if (!wifiIsStarted()) wifiStart();
+				if (!wifiStationIsStarted()) wifiStationStart();
+				wifiConnect(WIFISSID, WIFIPASSWORD);
+				startTemperature();
+			}
 
 			if (!wifiApIsStarted())
 			{
